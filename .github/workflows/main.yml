@@ -1,4 +1,4 @@
-name: Provisionning
+name: Planning and apply infrastructure
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  provision:
+  planning:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -97,3 +97,18 @@ jobs:
               body: output
             })
           }
+  apply:
+    needs: planning
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Terraform Apply
+      run: |
+        terraform init
+        terraform apply -auto-approve
