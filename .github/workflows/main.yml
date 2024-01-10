@@ -107,7 +107,7 @@ jobs:
         working-directory: ${{ vars.TF_ACTIONS_WORKING_DIR }}
     needs: planning
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
     - name: Checkout
       uses: actions/checkout@v2
