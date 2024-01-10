@@ -9,6 +9,9 @@ on:
 jobs:
   provision:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: $TF_ACTIONS_WORKING_DIR
     permissions:
       pull-requests: write
     steps:
