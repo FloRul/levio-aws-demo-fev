@@ -45,6 +45,6 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            Terraform init output: ${{ steps.init.outputs.stdout }}
-            Terraform plan output: ${{ steps.plan.outputs.stdout }}
+            Terraform init output: `${{ steps.init.outputs.stdout }}`
+            Terraform plan output: `${{ steps.plan.outputs.stdout }}`
           GITHUB_TOKEN: ${{ secrets.PAT_SECRET }}
