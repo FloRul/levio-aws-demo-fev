@@ -8,10 +8,11 @@ on:
   push:
     branches:
       - main
-      
+
 jobs:
   planning:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     defaults:
       run:
         working-directory: ${{ vars.TF_ACTIONS_WORKING_DIR }}
@@ -101,6 +102,9 @@ jobs:
             })
           }
   apply:
+    defaults:
+      run:
+        working-directory: ${{ vars.TF_ACTIONS_WORKING_DIR }}
     needs: planning
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
