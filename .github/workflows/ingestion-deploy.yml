@@ -25,13 +25,18 @@ jobs:
      run: |
        aws ecr describe-repositories --repository-names ${{ vars.INGESTION_LAMBDA_ECR }} || aws ecr create-repository --repository-name ${{ vars.INGESTION_LAMBDA_ECR }}
    
+   - name: Compute hash of source code
+     id: compute-hash
+     run: |
+       echo "INGESTION_IMAGE=hash::$(tar -cf - ./ingestion/src | sha256sum | cut -d ' ' -f 1)" >> $GITHUB_ENV
+
    - name: Build, tag, and push image to Amazon ECR
      id: build-image
      working-directory: ./ingestion/src
      env:
        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
        ECR_REPOSITORY: ${{ vars.INGESTION_LAMBDA_ECR }}
-       IMAGE_TAG: latest
+       IMAGE_TAG: ${{ env.INGESTION_IMAGE }}
      run: |
        # Build a docker container and
        # push it to ECR so that it can

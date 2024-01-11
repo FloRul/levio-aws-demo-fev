@@ -1,4 +1,5 @@
 module "lambda_function_container_image" {
+  timeout                  = 20
   source                   = "terraform-aws-modules/lambda/aws"
   function_name            = var.lambda_function_name
   create_package           = false
