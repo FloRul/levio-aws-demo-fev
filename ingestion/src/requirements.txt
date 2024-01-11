@@ -1,5 +1,5 @@
 unstructured
-langchain
+langchain-community
 psycopg2-binary
 pgvector
 boto3>=1.28.85

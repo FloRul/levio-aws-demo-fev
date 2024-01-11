@@ -1,30 +1,28 @@
 import json
 import os
 import boto3
-from langchain.embeddings import BedrockEmbeddings
-from langchain.vectorstores.pgvector import PGVector
+from langchain_community.embeddings import BedrockEmbeddings
+from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError, BotoCoreError
+import psycopg2
+from psycopg2 import OperationalError
 
 
 def test_connectivity():
-    region_name = "us-west-2"
-    session = boto3.Session()
-
     # Test connectivity to Secrets Manager
     try:
         print("Connecting to Secrets Manager...")
         get_secret()
+        print("Connected to Secrets Manager successfully.")
     except (NoCredentialsError, BotoCoreError) as e:
-        print("Failed to connect to Secrets Manager.")
+        print("Failed to connect to Secrets Managers.")
         raise e
 
     # Test connectivity to RDS
     try:
         print("Connecting to RDS...")
-        rds_client = session.client(
-            service_name="rds", region_name=region_name)
-        rds_client.describe_db_instances(MaxRecords=1)
+        create_conn(get_connection_string())
         print("Connected to RDS successfully.")
     except (NoCredentialsError, BotoCoreError) as e:
         print("Failed to connect to RDS.")
@@ -51,32 +49,39 @@ def get_secret():
         raise (e)
 
 
-bedrock = boto3.client("bedrock-runtime")
+def get_connection_string():
+    PGVECTOR_DRIVER = os.environ.get("PGVECTOR_DRIVER", "psycopg2")
+    PGVECTOR_HOST = os.environ.get("PGVECTOR_HOST", "localhost")
+    PGVECTOR_PORT = int(os.environ.get("PGVECTOR_PORT", 3306))
+    PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "postgres")
+    PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
+    PGVECTOR_PASSWORD = get_secret()
+    CONNECTION_STRING = PGVector.connection_string_from_db_params(
+        driver=PGVECTOR_DRIVER,
+        host=PGVECTOR_HOST,
+        port=PGVECTOR_PORT,
+        database=PGVECTOR_DATABASE,
+        user=PGVECTOR_USER,
+        password=PGVECTOR_PASSWORD,
+    )
+    return CONNECTION_STRING
 
-PGVECTOR_DRIVER = os.environ.get("PGVECTOR_DRIVER", "psycopg2")
-PGVECTOR_HOST = os.environ.get("PGVECTOR_HOST", "localhost")
-PGVECTOR_PORT = int(os.environ.get("PGVECTOR_PORT", 3306))
-PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "postgres")
-PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
-DEV_MODE = os.environ["DEV_MODE"].lower() == "true"
-PGVECTOR_PASSWORD = get_secret()
 
-PGVECTOR_COLLECTION_NAME = os.environ.get(
-    "COLLECTION_NAME", "emails-embeddings")
+def create_conn(conn_str):
+    conn = None
+    try:
+        conn = psycopg2.connect(conn_str)
+        print("Connection to PostgreSQL DB successful")
+    except OperationalError as e:
+        print(f"The error '{e}' occurred")
+    return conn
 
 
-CONNECTION_STRING = PGVector.connection_string_from_db_params(
-    driver=PGVECTOR_DRIVER,
-    host=PGVECTOR_HOST,
-    port=PGVECTOR_PORT,
-    database=PGVECTOR_DATABASE,
-    user=os.environ.get("PGVECTOR_USER", "postgres"),
-    password=PGVECTOR_PASSWORD,
-)
-
-vectorstore = PGVector(connection_string=CONNECTION_STRING,
-                       collection_name=PGVECTOR_COLLECTION_NAME,
-                       embedding_function=BedrockEmbeddings(client=bedrock))
+def get_vector_store():
+    bedrock = boto3.client('bedrock-runtime')
+    return PGVector(connection_string=get_connection_string(),
+                    collection_name="PGVECTOR_COLLECTION_NAME",
+                    embedding_function=BedrockEmbeddings(client=bedrock))
 
 
 def prepare_prompt(query, docs):
