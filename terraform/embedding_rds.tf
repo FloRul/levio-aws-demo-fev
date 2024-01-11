@@ -35,14 +35,14 @@ resource "aws_db_parameter_group" "default" {
   }
 }
 
-resource "aws_security_group_rule" "database_sg_from_jumpbox_sg" {
-  security_group_id        = aws_security_group.database_sg.id
-  type                     = "ingress"
-  from_port                = 0
-  to_port                  = 0
-  protocol                 = "-1"
-  source_security_group_id = aws_security_group.jumpbox_sg.id
-}
+# resource "aws_security_group_rule" "database_sg_from_jumpbox_sg" {
+#   security_group_id        = aws_security_group.database_sg.id
+#   type                     = "ingress"
+#   from_port                = 0
+#   to_port                  = 0
+#   protocol                 = "-1"
+#   source_security_group_id = aws_security_group.jumpbox_sg.id
+# }
 
 resource "aws_security_group_rule" "db_egress_all" {
   security_group_id = aws_security_group.database_sg.id

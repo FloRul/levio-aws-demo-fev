@@ -10,3 +10,8 @@ variable "db_name" {
 variable "jumpbox_instance_type" {
   default = "t2.micro"
 }
+
+variable "ingestion_lambda_image_uri" {
+  type     = string
+  nullable = false
+}
