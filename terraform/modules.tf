@@ -2,7 +2,7 @@ module "ingestion" {
   source              = "../ingestion"
   storage_bucket_name = "levio-demo-fev-storage"
   lambda_vpc_security_group_ids = [
-    module.vpc.default_security_group_id,
+    aws_security_group.lambda_ingestion_sg,
   ]
   lambda_vpc_subnet_ids          = module.vpc.public_subnets
   pg_vector_host                 = aws_db_instance.vector_db.address
