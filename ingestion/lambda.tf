@@ -6,6 +6,7 @@ module "lambda_function_container_image" {
   package_type           = "Image"
   vpc_subnet_ids         = var.lambda_vpc_subnet_ids
   vpc_security_group_ids = var.lambda_vpc_security_group_ids
+  role_name              = aws_iam_role.lambda_role.name
   environment_variables = {
     PGVECTOR_DRIVER               = "psycopg2"
     PGVECTOR_HOST                 = var.pg_vector_host
