@@ -83,7 +83,7 @@ module "lambda_function_container_image" {
       effect = "Allow"
 
       resources = [
-        "arn:aws:secretsmanager:${var.aws_region}:446872271111:secret:${var.pg_vector_password_secret_name}-*"
+        "arn:aws:secretsmanager:${var.aws_region}:446872271111:secret:${var.pg_vector_password_secret_name}"
       ]
 
       actions = [
