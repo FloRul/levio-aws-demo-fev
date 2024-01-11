@@ -13,16 +13,15 @@ def test_connectivity():
 
     # Test connectivity to Secrets Manager
     try:
-        secretsmanager_client = session.client(
-            service_name="secretsmanager", region_name=region_name)
-        secretsmanager_client.list_secrets(MaxResults=1)
-        print("Connected to Secrets Manager successfully.")
+        print("Connecting to Secrets Manager...")
+        get_secret()
     except (NoCredentialsError, BotoCoreError) as e:
         print("Failed to connect to Secrets Manager.")
         raise e
 
     # Test connectivity to RDS
     try:
+        print("Connecting to RDS...")
         rds_client = session.client(
             service_name="rds", region_name=region_name)
         rds_client.describe_db_instances(MaxRecords=1)
