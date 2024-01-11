@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import boto3
 from langchain.embeddings import BedrockEmbeddings
 from langchain.vectorstores.pgvector import PGVector

@@ -31,7 +31,7 @@ resource "aws_vpc_endpoint" "bedrock_endpoint" {
   vpc_id              = module.vpc.vpc_id
   service_name        = "com.amazonaws.${var.aws_region}.bedrock-runtime"
   vpc_endpoint_type   = "Interface"
-  security_group_ids  = [aws_security_group.sm_sg.id]
+  security_group_ids  = [aws_security_group.bedrock_sg.id]
   subnet_ids          = module.vpc.public_subnets
   private_dns_enabled = true
 }
@@ -40,18 +40,11 @@ resource "aws_security_group" "bedrock_sg" {
   name   = "bedrock-runtime-sg"
   vpc_id = module.vpc.vpc_id
   ingress {
-    description = "Bedrock runtime sg"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  egress {
-    description = "Bedrock runtime sg"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    description     = "Bedrock runtime sg"
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    security_groups = [aws_security_group.lambda_ingestion_sg.id]
   }
 }
 
@@ -59,14 +52,19 @@ resource "aws_security_group" "sm_sg" {
   name   = "secret-manager-sg"
   vpc_id = module.vpc.vpc_id
   ingress {
-    description = "Secrets Manager"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    description     = "Secrets Manager"
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    security_groups = [aws_security_group.lambda_ingestion_sg.id]
   }
+}
+
+resource "aws_security_group" "lambda_ingestion_sg" {
+  name   = "lambda-ingestion-sg"
+  vpc_id = module.vpc.vpc_id
   egress {
-    description = "Secrets Manager"
+    description = "Lambda Ingestion"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
