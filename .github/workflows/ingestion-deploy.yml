@@ -3,11 +3,8 @@ on:
   push:
     paths:
       - 'ingestion/src/**'
-  pull_request:
     branches:
-      - main
-    types: [opened, synchronize]
-
+      - dev
 jobs:
   build-image:
    runs-on: ubuntu-latest
