@@ -35,7 +35,7 @@ data "aws_iam_policy_document" "lambda_policy_doc" {
     effect = "Allow"
 
     resources = [
-      "arn:aws:logs:*:*:log-group:/aws/lambda/*:*"
+      "arn:aws:logs:*:*:log-group:/aws/${var.lambda_function_name}/*:*"
     ]
 
     actions = [
