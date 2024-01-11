@@ -4,6 +4,32 @@ import boto3
 from langchain.embeddings import BedrockEmbeddings
 from langchain.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
+from botocore.exceptions import NoCredentialsError, BotoCoreError
+
+
+def test_connectivity():
+    region_name = "us-west-2"
+    session = boto3.Session()
+
+    # Test connectivity to Secrets Manager
+    try:
+        secretsmanager_client = session.client(
+            service_name="secretsmanager", region_name=region_name)
+        secretsmanager_client.list_secrets(MaxResults=1)
+        print("Connected to Secrets Manager successfully.")
+    except (NoCredentialsError, BotoCoreError) as e:
+        print("Failed to connect to Secrets Manager.")
+        raise e
+
+    # Test connectivity to RDS
+    try:
+        rds_client = session.client(
+            service_name="rds", region_name=region_name)
+        rds_client.describe_db_instances(MaxRecords=1)
+        print("Connected to RDS successfully.")
+    except (NoCredentialsError, BotoCoreError) as e:
+        print("Failed to connect to RDS.")
+        raise e
 
 
 def get_secret():
@@ -14,12 +40,12 @@ def get_secret():
         service_name="secretsmanager",
         region_name=region_name
     )
-
     try:
         get_secret_value_response = client.get_secret_value(
             SecretId=secret_name
         )
         secret = get_secret_value_response["SecretString"]
+        print("Got secret successfully.")
         return secret
     except ClientError as e:
         print(e)
@@ -95,53 +121,54 @@ headers = {
 
 
 def lambda_handler(event, context):
-    try:
-        if event['httpMethod'] == 'OPTIONS':
-            # Respond to preflight request
-            return {
-                "statusCode": 200,
-                "headers": headers,
-                "isBase64Encoded": False,
-            }
+    test_connectivity()
+    # try:
+    #     if event['httpMethod'] == 'OPTIONS':
+    #         # Respond to preflight request
+    #         return {
+    #             "statusCode": 200,
+    #             "headers": headers,
+    #             "isBase64Encoded": False,
+    #         }
 
-        print(event)
-        body = json.loads(event['body'])
-        query = body['query']
-        max_tokens_to_sample = body['max_tokens']
-        filter = body.get('filter', '')
-        docs = vectorstore.similarity_search_with_relevance_scores(
-            query=query, k=5)
+    #     print(event)
+    #     body = json.loads(event['body'])
+    #     query = body['query']
+    #     max_tokens_to_sample = body['max_tokens']
+    #     filter = body.get('filter', '')
+    #     docs = vectorstore.similarity_search_with_relevance_scores(
+    #         query=query, k=5)
 
-        print(f"dev mode:{DEV_MODE}")
+    #     print(f"dev mode:{DEV_MODE}")
 
-        if DEV_MODE:
-            response = dummy_invoke_model()
-        else:
-            response = invoke_model(query, docs, max_tokens_to_sample)
+    #     if DEV_MODE:
+    #         response = dummy_invoke_model()
+    #     else:
+    #         response = invoke_model(query, docs, max_tokens_to_sample)
 
-        result = {
-            "completion": response,
-            "docs": json.dumps(list(map(lambda x: {"content": x[0].page_content,
-                                                   "metadata": x[0].metadata,
-                                                   "score": x[1]},
-                                        docs)))
-        }
-        print(result)
+    #     result = {
+    #         "completion": response,
+    #         "docs": json.dumps(list(map(lambda x: {"content": x[0].page_content,
+    #                                                "metadata": x[0].metadata,
+    #                                                "score": x[1]},
+    #                                     docs)))
+    #     }
+    #     print(result)
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps(result),
-            "headers": headers,
-            "isBase64Encoded": False,
-        }
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return {
-            "statusCode": 500,
-            "Access-Control-Allow-Origin": "*",
-            "body": json.dumps(str(e)),
-            "headers": headers
-        }
+    #     return {
+    #         "statusCode": 200,
+    #         "body": json.dumps(result),
+    #         "headers": headers,
+    #         "isBase64Encoded": False,
+    #     }
+    # except Exception as e:
+    #     print(f"Error: {str(e)}")
+    #     return {
+    #         "statusCode": 500,
+    #         "Access-Control-Allow-Origin": "*",
+    #         "body": json.dumps(str(e)),
+    #         "headers": headers
+    #     }
 
 # # Retrieve more documents with higher diversity
 # # Useful if your dataset has many similar documents
