@@ -53,3 +53,8 @@ variable "ingestion_lambda_image_uri" {
   type     = string
   nullable = false
 }
+
+variable "aws_region" {
+  type    = string
+  default = "us-west-2"
+}
