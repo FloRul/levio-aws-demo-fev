@@ -28,7 +28,7 @@ jobs:
    - name: Compute hash of source code
      id: compute-hash
      run: |
-       echo "INGESTION_IMAGE=hash::$(tar -cf - ./ingestion/src | sha256sum | cut -d ' ' -f 1)" >> $GITHUB_ENV
+       echo "INGESTION_IMAGE=$(tar -cf - ./ingestion/src | sha256sum | cut -d ' ' -f 1)" >> $GITHUB_ENV
 
    - name: Build, tag, and push image to Amazon ECR
      id: build-image
