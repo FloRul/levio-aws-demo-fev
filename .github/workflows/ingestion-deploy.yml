@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'ingestion/src/**'
+      - '.github/workflows/deploy-ingestion-lambda-image.yml'
     branches:
       - dev
 jobs:
