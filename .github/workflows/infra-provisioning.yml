@@ -28,7 +28,11 @@ jobs:
       run: |
         IMAGE_DIGEST=$(aws ecr describe-images --repository-name ${{ vars.INGESTION_LAMBDA_ECR }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text)
         echo "INGESTION_IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_ENV"
-    - name: Terraform Apply
+    - name: Terraform Init
+      id: terraform-Init
       run: |
         terraform init
+    - name: Terraform Apply
+      id: terraform-Apply
+      run: |
         terraform apply -var="ingestion_lambda_image_uri=${{ env.INGESTION_IMAGE }}" -no-color -auto-approve
