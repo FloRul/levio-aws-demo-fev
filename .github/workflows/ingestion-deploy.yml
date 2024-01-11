@@ -29,7 +29,20 @@ jobs:
      id: compute-hash
      run: |
        echo "INGESTION_IMAGE=$(tar -cf - ./ingestion/src | sha256sum | cut -d ' ' -f 1)" >> $GITHUB_ENV
+   - name: Delete old images
+     run: |
+       # Get the list of image digests, sorted by push time in descending order.
+       image_digests=$(aws ecr list-images --repository-name ${{ vars.INGESTION_LAMBDA_ECR }} --sort-by PUSHED_AT --query 'imageIds[*].imageDigest' --output text)
 
+       # Split the list into an array.
+       IFS=' ' read -r -a array <<< "$image_digests"
+
+       # If there are more than 2 images, delete the old ones.
+       if [ ${#array[@]} -gt 2 ]; then
+         for i in "${array[@]:2}"; do
+           aws ecr batch-delete-image --repository-name ${{ vars.INGESTION_LAMBDA_ECR }} --image-ids imageDigest=$i
+         done
+       fi
    - name: Build, tag, and push image to Amazon ECR
      id: build-image
      working-directory: ./ingestion/src
