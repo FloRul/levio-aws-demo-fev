@@ -16,7 +16,7 @@ def test_connectivity():
         get_secret()
         print("Connected to Secrets Manager successfully.")
     except (NoCredentialsError, BotoCoreError) as e:
-        print("Failed to connect to Secrets Manager.")
+        print("Failed to connect to Secrets Managers.")
         raise e
 
     # Test connectivity to RDS
