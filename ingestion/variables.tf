@@ -63,3 +63,10 @@ variable "aws_region" {
   type    = string
   default = "us-west-2"
 }
+
+variable "queue_name" {
+  description = "The name of the SQS queue that dispatch the files to the Lambda function"
+  type        = string
+  nullable    = false
+}
+

@@ -1,23 +1,31 @@
 import json
 import os
 import boto3
-from langchain_core.documents.base import Document
 from langchain_community.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError, BotoCoreError
+import PyPDF2
+import tabula
 
 
-def test_connectivity():
+def fetch_file(bucket, key):
+    s3 = boto3.client('s3')
+    # Extract file extension from key
+    file_extension = os.path.splitext(key)[1][1:]
+    local_filename = '/tmp/file.' + file_extension
     try:
-        print("Connecting to RDS...")
-        vstore = get_vector_store()
-        vstore.add_documents(
-            [Document(page_content="foo")])
-        print("Connected to RDS successfully.")
-    except (NoCredentialsError, BotoCoreError) as e:
-        print("Failed to connect to RDS.")
+        s3.download_file(bucket, key, local_filename)
+    except NoCredentialsError as e:
+        print(e)
         raise e
+    except BotoCoreError as e:
+        print(e)
+        raise e
+    except ClientError as e:
+        print(e)
+        raise e
+    return local_filename, file_extension
 
 
 def get_secret():
@@ -33,7 +41,6 @@ def get_secret():
             SecretId=secret_name
         )
         secret = get_secret_value_response["SecretString"]
-        print("Got secret successfully.")
         return secret
     except ClientError as e:
         print(e)
@@ -65,95 +72,36 @@ def get_vector_store():
                     embedding_function=BedrockEmbeddings(client=bedrock))
 
 
-def prepare_prompt(query, docs):
-    separator = ".\n"
-    context = separator.join(map(lambda x: x[0].page_content, docs))
-    final_prompt = f"""\n\nHuman: You are an agent answering queries related to mailboxes content. 
-    Answer in french the following question : {query}, using the following context :{context}.
-    \n\nAssistant:"""
-    print(final_prompt)
-    return final_prompt
+def extract_content_from_pdf(file_path):
+    # Extract text
+    with open(file_path, 'rb') as file:
+        pdf_reader = PyPDF2.PdfFileReader(file)
+        text = ''
+        for page_num in range(pdf_reader.getNumPages()):
+            text += pdf_reader.getPage(page_num).extractText()
 
+    # Extract tables
+    tables = tabula.read_pdf(file_path, pages='all')
 
-def dummy_invoke_model():
-    return "this is a dummy response"
-
-
-def invoke_model(query, docs, max_tokens=512):
-    prompt = prepare_prompt(query, docs)
-    body = json.dumps({
-        "prompt": prompt,
-        "max_tokens_to_sample": max_tokens,
-        "temperature": 0.3,
-    })
-
-    modelId = "anthropic.claude-instant-v1"
-    accept = "application/json"
-    contentType = "application/json"
-
-    response = bedrock.invoke_model(
-        body=body, modelId=modelId, accept=accept, contentType=contentType)
-    body = response["body"].read().decode("utf-8")
-    json_body = json.loads(body)
-    return json_body['completion']
-
-
-headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "*",
-}
+    return text, tables
 
 
 def lambda_handler(event, context):
-    test_connectivity()
-    # try:
-    #     if event['httpMethod'] == 'OPTIONS':
-    #         # Respond to preflight request
-    #         return {
-    #             "statusCode": 200,
-    #             "headers": headers,
-    #             "isBase64Encoded": False,
-    #         }
+    for record in event['Records']:
+        sqs_event = json.loads(record['body'])
+        print(f"SQS event: {sqs_event}")
+        source_bucket = sqs_event["Records"][0]["s3"]["bucket"]["name"]
+        source_key = sqs_event["Records"][0]["s3"]["object"]["key"]
+        print(f"source_bucket: {source_bucket}")
+        print(f"source_key: {source_key}")
+        vector_store = get_vector_store()
 
-    #     print(event)
-    #     body = json.loads(event['body'])
-    #     query = body['query']
-    #     max_tokens_to_sample = body['max_tokens']
-    #     filter = body.get('filter', '')
-    #     docs = vectorstore.similarity_search_with_relevance_scores(
-    #         query=query, k=5)
+        local_filename, file_extension = fetch_file(source_bucket, source_key)
 
-    #     print(f"dev mode:{DEV_MODE}")
-
-    #     if DEV_MODE:
-    #         response = dummy_invoke_model()
-    #     else:
-    #         response = invoke_model(query, docs, max_tokens_to_sample)
-
-    #     result = {
-    #         "completion": response,
-    #         "docs": json.dumps(list(map(lambda x: {"content": x[0].page_content,
-    #                                                "metadata": x[0].metadata,
-    #                                                "score": x[1]},
-    #                                     docs)))
-    #     }
-    #     print(result)
-
-    #     return {
-    #         "statusCode": 200,
-    #         "body": json.dumps(result),
-    #         "headers": headers,
-    #         "isBase64Encoded": False,
-    #     }
-    # except Exception as e:
-    #     print(f"Error: {str(e)}")
-    #     return {
-    #         "statusCode": 500,
-    #         "Access-Control-Allow-Origin": "*",
-    #         "body": json.dumps(str(e)),
-    #         "headers": headers
-    #     }
+        if file_extension == 'pdf':
+            text, tables = extract_content_from_pdf(local_filename)
+            print(f"Extracted text: {text}")
+            print(f"Extracted tables: {tables}")
 
 # # Retrieve more documents with higher diversity
 # # Useful if your dataset has many similar documents
