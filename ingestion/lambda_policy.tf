@@ -72,7 +72,7 @@ data "aws_iam_policy_document" "lambda_policy_doc" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      var.pg_vector_password_secret_name
+      var.secret_arn
     ]
   }
 }

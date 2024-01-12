@@ -49,6 +49,11 @@ variable "pg_vector_password_secret_name" {
   nullable = false
 }
 
+variable "secret_arn" {
+  type     = string
+  nullable = false
+}
+
 variable "ingestion_lambda_image_uri" {
   type     = string
   nullable = false
