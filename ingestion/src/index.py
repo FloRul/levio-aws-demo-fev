@@ -1,21 +1,19 @@
 import json
 import os
 import boto3
+from langchain.docstore.document import Document
 from langchain_community.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError, BotoCoreError
-import psycopg2
-from psycopg2 import OperationalError
 
 
 def test_connectivity():
     try:
         print("Connecting to RDS...")
         vstore = get_vector_store()
-        print(vstore.connection_string)
         vstore.add_documents(
-            [{"page_content": "test", "metadata": {"test": "test"}}])
+            [Document(page_content="foo")])
         print("Connected to RDS successfully.")
     except (NoCredentialsError, BotoCoreError) as e:
         print("Failed to connect to RDS.")
