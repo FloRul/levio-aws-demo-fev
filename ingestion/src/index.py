@@ -10,18 +10,10 @@ from psycopg2 import OperationalError
 
 
 def test_connectivity():
-    # Test connectivity to Secrets Manager
-    try:
-        print("Connecting to Secrets Manager...")
-        get_secret()
-        print("Connected to Secrets Manager successfully.")
-    except (NoCredentialsError, BotoCoreError) as e:
-        print("Failed to connect to Secrets Managers.")
-        raise e
-
     try:
         print("Connecting to RDS...")
         vstore = get_vector_store()
+        print(vstore.connection_string)
         vstore.add_documents(
             [{"page_content": "test", "metadata": {"test": "test"}}])
         print("Connected to RDS successfully.")

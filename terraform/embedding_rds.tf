@@ -20,11 +20,6 @@ resource "aws_db_instance" "vector_db" {
   db_name                      = var.db_name
 }
 
-resource "aws_security_group" "database_sg" {
-  name   = "database-sg-main"
-  vpc_id = module.vpc.vpc_id
-}
-
 resource "aws_db_parameter_group" "default" {
   name   = "rds-pg"
   family = "postgres15"
@@ -43,12 +38,3 @@ resource "aws_db_parameter_group" "default" {
 #   protocol                 = "-1"
 #   source_security_group_id = aws_security_group.jumpbox_sg.id
 # }
-
-resource "aws_security_group_rule" "db_egress_all" {
-  security_group_id = aws_security_group.database_sg.id
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-}
