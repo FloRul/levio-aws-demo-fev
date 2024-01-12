@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError, BotoCoreError
 import PyPDF2
 import tabula
+import time
 
 
 def fetch_file(bucket, key):
@@ -73,6 +74,8 @@ def get_vector_store():
 
 
 def extract_content_from_pdf(file_path):
+    start_time = time.time()  # Start the timer
+
     # Extract text
     with open(file_path, 'rb') as file:
         pdf_reader = PyPDF2.PdfFileReader(file)
@@ -82,6 +85,11 @@ def extract_content_from_pdf(file_path):
 
     # Extract tables
     tables = tabula.read_pdf(file_path, pages='all')
+
+    end_time = time.time()  # End the timer
+    elapsed_time = end_time - start_time  # Calculate elapsed time
+
+    print(f"Time taken to extract content from PDF: {elapsed_time} seconds")
 
     return text, tables
 
@@ -100,8 +108,8 @@ def lambda_handler(event, context):
 
         if file_extension == 'pdf':
             text, tables = extract_content_from_pdf(local_filename)
-            print(f"Extracted text: {text}")
-            print(f"Extracted tables: {tables}")
+            print(f"Extracted text")
+            print(f"Extracted tables")
 
 # # Retrieve more documents with higher diversity
 # # Useful if your dataset has many similar documents

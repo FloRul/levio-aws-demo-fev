@@ -12,7 +12,8 @@ resource "aws_sqs_queue" "queue" {
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = aws_s3_bucket.ingestion_source_storage.id
+  depends_on = [aws_lambda_event_source_mapping.event_source_mapping, aws_sqs_queue_policy.sqs_policy]
+  bucket     = aws_s3_bucket.ingestion_source_storage.id
 
   queue {
     queue_arn     = aws_sqs_queue.queue.arn
@@ -34,15 +35,15 @@ data "aws_iam_policy_document" "sqs_policy" {
     effect = "Allow"
 
     principals {
-      type        = "*"
-      identifiers = ["*"]
+      type        = "Service"
+      identifiers = ["s3.amazonaws.com"]
     }
 
     actions   = ["sqs:SendMessage"]
-    resources = ["arn:aws:sqs:*:*:s3-event-notification-queue"]
+    resources = ["arn:aws:sqs:${var.aws_region}:*:${aws_sqs_queue.queue.name}"]
 
     condition {
-      test     = "ArnEquals"
+      test     = "ArnLike"
       variable = "aws:SourceArn"
       values   = [aws_s3_bucket.ingestion_source_storage.arn]
     }
