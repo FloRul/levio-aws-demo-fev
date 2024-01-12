@@ -103,7 +103,7 @@ def lambda_handler(event, context):
         print(f"source_bucket: {source_bucket}")
         print(f"source_key: {source_key}")
         vector_store = get_vector_store()
-
+        print("vector store retrieved")
         local_filename, file_extension = fetch_file(source_bucket, source_key)
 
         if file_extension == 'pdf':
