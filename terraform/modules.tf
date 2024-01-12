@@ -9,7 +9,7 @@ module "ingestion" {
   pg_vector_port                 = aws_db_instance.vector_db.port
   pg_vector_database             = aws_db_instance.vector_db.db_name
   pg_vector_user                 = aws_db_instance.vector_db.username
-  pg_vector_password_secret_name = aws_secretsmanager_secret_version.password.secret_id
+  pg_vector_password_secret_name = aws_secretsmanager_secret.password.name
   ingestion_lambda_image_uri     = var.ingestion_lambda_image_uri
   lambda_function_name           = "levio-demo-fev-ingestion"
 }
