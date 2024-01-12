@@ -31,18 +31,18 @@ resource "aws_lambda_event_source_mapping" "event_source_mapping" {
 
 data "aws_iam_policy_document" "sqs_policy" {
   statement {
-    actions = ["sqs:SendMessage"]
-    effect  = "Allow"
+    effect = "Allow"
 
     principals {
-      type        = "Service"
-      identifiers = ["s3.amazonaws.com"]
+      type        = "*"
+      identifiers = ["*"]
     }
 
-    resources = [aws_sqs_queue.queue.arn]
+    actions   = ["sqs:SendMessage"]
+    resources = ["arn:aws:sqs:*:*:s3-event-notification-queue"]
 
     condition {
-      test     = "ArnLike"
+      test     = "ArnEquals"
       variable = "aws:SourceArn"
       values   = [aws_s3_bucket.ingestion_source_storage.arn]
     }
