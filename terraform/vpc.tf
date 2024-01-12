@@ -71,3 +71,15 @@ resource "aws_security_group" "lambda_ingestion_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+resource "aws_security_group" "database_sg" {
+  name   = "database-sg-main"
+  vpc_id = module.vpc.vpc_id
+  ingress {
+    description     = "VectorDB ingress"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "-1"
+    security_groups = [aws_security_group.lambda_ingestion_sg.id]
+  }
+}
