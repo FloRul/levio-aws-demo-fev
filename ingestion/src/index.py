@@ -19,10 +19,11 @@ def test_connectivity():
         print("Failed to connect to Secrets Managers.")
         raise e
 
-    # Test connectivity to RDS
     try:
         print("Connecting to RDS...")
-        create_conn(get_connection_string())
+        vstore = get_vector_store()
+        vstore.add_documents(
+            [{"page_content": "test", "metadata": {"test": "test"}}])
         print("Connected to RDS successfully.")
     except (NoCredentialsError, BotoCoreError) as e:
         print("Failed to connect to RDS.")
@@ -52,7 +53,7 @@ def get_secret():
 def get_connection_string():
     PGVECTOR_DRIVER = os.environ.get("PGVECTOR_DRIVER", "psycopg2")
     PGVECTOR_HOST = os.environ.get("PGVECTOR_HOST", "localhost")
-    PGVECTOR_PORT = int(os.environ.get("PGVECTOR_PORT", 3306))
+    PGVECTOR_PORT = int(os.environ.get("PGVECTOR_PORT", 5432))
     PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "postgres")
     PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
     PGVECTOR_PASSWORD = get_secret()
@@ -67,20 +68,10 @@ def get_connection_string():
     return CONNECTION_STRING
 
 
-def create_conn(conn_str):
-    conn = None
-    try:
-        conn = psycopg2.connect(conn_str)
-        print("Connection to PostgreSQL DB successful")
-    except OperationalError as e:
-        print(f"The error '{e}' occurred")
-    return conn
-
-
 def get_vector_store():
     bedrock = boto3.client('bedrock-runtime')
     return PGVector(connection_string=get_connection_string(),
-                    collection_name="PGVECTOR_COLLECTION_NAME",
+                    collection_name="main_connection",
                     embedding_function=BedrockEmbeddings(client=bedrock))
 
 
