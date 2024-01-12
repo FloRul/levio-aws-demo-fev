@@ -73,25 +73,23 @@ def get_vector_store():
                     embedding_function=BedrockEmbeddings(client=bedrock))
 
 
-def extract_content_from_pdf(file_path):
-    start_time = time.time()  # Start the timer
+def extract_content_from_pdf(file_path, page_range=None):
+    pdf_file_obj = open(file_path, 'rb')
+    pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
 
-    # Extract text
-    with open(file_path, 'rb') as file:
-        pdf_reader = PyPDF2.PdfFileReader(file)
-        text = ''
-        for page_num in range(pdf_reader.getNumPages()):
-            text += pdf_reader.getPage(page_num).extractText()
+    text = ""
 
-    # Extract tables
-    tables = tabula.read_pdf(file_path, pages='all')
+    # If no page range is provided, extract from all pages
+    if page_range is None:
+        page_range = range(pdf_reader.numPages)
 
-    end_time = time.time()  # End the timer
-    elapsed_time = end_time - start_time  # Calculate elapsed time
+    for page_num in page_range:
+        page_obj = pdf_reader.getPage(page_num)
+        text += page_obj.extractText()
 
-    print(f"Time taken to extract content from PDF: {elapsed_time} seconds")
+    pdf_file_obj.close()
 
-    return text, tables
+    return text
 
 
 def lambda_handler(event, context):
@@ -105,9 +103,10 @@ def lambda_handler(event, context):
         vector_store = get_vector_store()
         print("vector store retrieved")
         local_filename, file_extension = fetch_file(source_bucket, source_key)
-
+        print(f"local_filename: {local_filename}")
         if file_extension == 'pdf':
-            text, tables = extract_content_from_pdf(local_filename)
+            text, tables = extract_content_from_pdf(
+                local_filename, range(2, 3))
             print(f"Extracted text")
             print(f"Extracted tables")
 
