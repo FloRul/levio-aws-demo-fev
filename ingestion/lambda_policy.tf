@@ -75,14 +75,4 @@ data "aws_iam_policy_document" "lambda_policy_doc" {
       var.secret_arn
     ]
   }
-  statement {
-    actions = [
-      "sqs:ReceiveMessage",
-      "sqs:DeleteMessage",
-      "sqs:GetQueueUrl",
-    ]
-    resources = [
-      aws
-    ]
-  }
 }
