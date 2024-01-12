@@ -1,7 +1,7 @@
 import json
 import os
 import boto3
-from langchain.docstore.document import Document
+from langchain_core.documents.base import Document
 from langchain_community.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
