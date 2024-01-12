@@ -6,8 +6,6 @@ from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError, BotoCoreError
 import PyPDF2
-import tabula
-import time
 
 
 def fetch_file(bucket, key):
