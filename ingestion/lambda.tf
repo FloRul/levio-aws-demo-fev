@@ -15,7 +15,6 @@ module "lambda_function_container_image" {
     PGVECTOR_PORT                 = var.pg_vector_port
     PGVECTOR_DATABASE             = var.pg_vector_database
     PGVECTOR_USER                 = var.pg_vector_user
-    PGVECTOR_COLLECTION_NAME      = "emails-embeddings"
     PGVECTOR_PASSWORD_SECRET_NAME = var.pg_vector_password_secret_name
   }
   policy_statements = {
