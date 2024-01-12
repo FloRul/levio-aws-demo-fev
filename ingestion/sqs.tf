@@ -29,6 +29,31 @@ resource "aws_lambda_event_source_mapping" "event_source_mapping" {
   batch_size       = 1
 }
 
+data "aws_iam_policy_document" "sqs_policy" {
+  statement {
+    actions = ["sqs:SendMessage"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["s3.amazonaws.com"]
+    }
+
+    resources = [aws_sqs_queue.queue.arn]
+
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = [aws_s3_bucket.ingestion_source_storage.arn]
+    }
+  }
+}
+
+resource "aws_sqs_queue_policy" "sqs_policy" {
+  queue_url = aws_sqs_queue.queue.url
+  policy    = data.aws_iam_policy_document.sqs_policy.json
+}
+
 output "queue_url" {
   description = "The URL of the SQS queue"
   value       = aws_sqs_queue.queue.url
