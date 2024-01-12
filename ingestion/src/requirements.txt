@@ -3,3 +3,5 @@ langchain-community
 psycopg2-binary
 pgvector
 boto3>=1.28.85
+pypdf2
+tabula-py

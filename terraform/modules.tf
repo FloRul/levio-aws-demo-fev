@@ -13,4 +13,5 @@ module "ingestion" {
   secret_arn                     = aws_secretsmanager_secret.password.arn
   ingestion_lambda_image_uri     = var.ingestion_lambda_image_uri
   lambda_function_name           = "levio-demo-fev-ingestion"
+  queue_name                     = "levio-demo-fev-ingestion-queue"
 }
