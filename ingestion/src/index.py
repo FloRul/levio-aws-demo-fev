@@ -5,14 +5,16 @@ from langchain_community.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError, BotoCoreError
-import PyPDF2
+from langchain_community.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
 def fetch_file(bucket, key):
     s3 = boto3.client('s3')
     # Extract file extension from key
     file_extension = os.path.splitext(key)[1][1:]
-    local_filename = '/tmp/file.' + file_extension
+    file_name = os.path.splitext(key)[0]
+    local_filename = f'/tmp/{file_name}.{file_extension}'
     try:
         s3.download_file(bucket, key, local_filename)
     except NoCredentialsError as e:
@@ -24,7 +26,7 @@ def fetch_file(bucket, key):
     except ClientError as e:
         print(e)
         raise e
-    return local_filename, file_extension
+    return local_filename, file_extension, file_name
 
 
 def get_secret():
@@ -71,23 +73,11 @@ def get_vector_store():
                     embedding_function=BedrockEmbeddings(client=bedrock))
 
 
-def extract_content_from_pdf(file_path, page_range=None):
-    pdf_file_obj = open(file_path, 'rb')
-    pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
-
-    text = ""
-
-    # If no page range is provided, extract from all pages
-    if page_range is None:
-        page_range = range(pdf_reader.numPages)
-
-    for page_num in page_range:
-        page_obj = pdf_reader.getPage(page_num)
-        text += page_obj.extractText()
-
-    pdf_file_obj.close()
-
-    return text
+def extract_content_from_pdf(file_path, file_name):
+    loader = PyPDFLoader(file_path)
+    docs = loader.load_and_split(
+        text_splitter=RecursiveCharacterTextSplitter(chunk_size=450, chunk_overlap=0))
+    return docs
 
 
 def lambda_handler(event, context):
@@ -100,11 +90,13 @@ def lambda_handler(event, context):
         print(f"source_key: {source_key}")
         vector_store = get_vector_store()
         print("vector store retrieved")
-        local_filename, file_extension = fetch_file(source_bucket, source_key)
+        local_filename, file_extension, file_name = fetch_file(
+            source_bucket, source_key)
         print(f"local_filename: {local_filename}")
         if file_extension == 'pdf':
-            text, tables = extract_content_from_pdf(
-                local_filename, range(2, 3))
+            docs = extract_content_from_pdf(
+                local_filename, file_name=file_name)
+            vector_store.add_documents(docs)
             print(f"Extracted text")
             print(f"Extracted tables")
 
