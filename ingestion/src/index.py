@@ -77,7 +77,7 @@ def extract_content_from_pdf(file_path, file_name):
     print(f"Extracting content from {file_name}")
     loader = PyPDFLoader(file_path)
     docs = loader.load_and_split(
-        text_splitter=RecursiveCharacterTextSplitter(chunk_size=450, chunk_overlap=0))
+        text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50))
     return docs
 
 
