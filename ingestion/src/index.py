@@ -97,8 +97,7 @@ def lambda_handler(event, context):
             docs = extract_content_from_pdf(
                 local_filename, file_name=file_name)
             vector_store.add_documents(docs)
-            print(f"Extracted text")
-            print(f"Extracted tables")
+            print(f"Extracted {len(docs)} text")
 
 # # Retrieve more documents with higher diversity
 # # Useful if your dataset has many similar documents
