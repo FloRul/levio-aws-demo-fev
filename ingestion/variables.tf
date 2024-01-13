@@ -54,7 +54,7 @@ variable "secret_arn" {
   nullable = false
 }
 
-variable "ingestion_lambda_image_uri" {
+variable "lambda_image_uri" {
   type     = string
   nullable = false
 }

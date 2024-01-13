@@ -11,7 +11,7 @@ module "ingestion" {
   pg_vector_user                 = aws_db_instance.vector_db.username
   pg_vector_password_secret_name = aws_secretsmanager_secret.password.name
   secret_arn                     = aws_secretsmanager_secret.password.arn
-  ingestion_lambda_image_uri     = var.ingestion_lambda_image_uri
+  lambda_image_uri               = var.lambda_image_uri
   lambda_function_name           = "levio-demo-fev-ingestion"
   queue_name                     = "levio-demo-fev-ingestion-queue"
 }

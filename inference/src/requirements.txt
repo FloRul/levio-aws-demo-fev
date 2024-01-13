@@ -1,0 +1,8 @@
+unstructured
+langchain-community
+langchain
+psycopg2-binary
+pgvector
+boto3>=1.28.85
+pypdf
+tabula-py
