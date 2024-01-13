@@ -91,31 +91,5 @@ module "lambda_function_container_image" {
         "secretsmanager:GetSecretValue"
       ]
     }
-    sqs = {
-      effect = "Allow"
-
-      resources = [
-        aws_sqs_queue.queue.arn
-      ]
-
-      actions = [
-        "sqs:ReceiveMessage",
-        "sqs:DeleteMessage",
-        "sqs:GetQueueAttributes",
-        "sqs:ChangeMessageVisibility"
-      ]
-    }
-    s3 = {
-      effect = "Allow"
-
-      resources = [
-        aws_s3_bucket.ingestion_source_storage.arn,
-        "${aws_s3_bucket.ingestion_source_storage.arn}/*"
-      ]
-
-      actions = [
-        "s3:*"
-      ]
-    }
   }
 }
