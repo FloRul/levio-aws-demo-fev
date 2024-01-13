@@ -105,5 +105,19 @@ module "lambda_function_container_image" {
         "sqs:ChangeMessageVisibility"
       ]
     }
+    s3 = {
+      effect = "Allow"
+
+      resources = [
+        aws_s3_bucket.ingestion_source_storage.arn
+      ]
+
+      actions = [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:DeleteObject"
+      ]
+    }
   }
 }
