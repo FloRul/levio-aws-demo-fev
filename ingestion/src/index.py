@@ -104,7 +104,7 @@ def lambda_handler(event, context):
         print(f"local_filename: {local_filename}")
         if file_extension == 'pdf':
             text, tables = extract_content_from_pdf(
-                local_filename, range(2, 3))
+                local_filename, page_range=range(2, 3))
             print(f"Extracted text")
             print(f"Extracted tables")
 
