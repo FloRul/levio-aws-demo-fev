@@ -74,6 +74,7 @@ def get_vector_store():
 
 
 def extract_content_from_pdf(file_path, file_name):
+    print(f"Extracting content from {file_name}")
     loader = PyPDFLoader(file_path)
     docs = loader.load_and_split(
         text_splitter=RecursiveCharacterTextSplitter(chunk_size=450, chunk_overlap=0))
@@ -93,7 +94,9 @@ def lambda_handler(event, context):
         local_filename, file_extension, file_name = fetch_file(
             source_bucket, source_key)
         print(f"local_filename: {local_filename}")
+
         if file_extension == 'pdf':
+            print("Extracting text from pdf")
             docs = extract_content_from_pdf(
                 local_filename, file_name=file_name)
             vector_store.add_documents(docs)
