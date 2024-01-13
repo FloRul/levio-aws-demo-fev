@@ -66,10 +66,10 @@ def get_connection_string():
     return CONNECTION_STRING
 
 
-def get_vector_store():
+def get_vector_store(collection_name="main_collection"):
     bedrock = boto3.client('bedrock-runtime')
     return PGVector(connection_string=get_connection_string(),
-                    collection_name="main_connection",
+                    collection_name=collection_name,
                     embedding_function=BedrockEmbeddings(client=bedrock))
 
 
@@ -89,7 +89,7 @@ def lambda_handler(event, context):
         source_key = sqs_event["Records"][0]["s3"]["object"]["key"]
         print(f"source_bucket: {source_bucket}")
         print(f"source_key: {source_key}")
-        vector_store = get_vector_store()
+        vector_store = get_vector_store(collection_name=source_bucket)
         print("vector store retrieved")
         local_filename, file_extension, file_name = fetch_file(
             source_bucket, source_key)
