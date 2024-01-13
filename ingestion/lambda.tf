@@ -109,7 +109,8 @@ module "lambda_function_container_image" {
       effect = "Allow"
 
       resources = [
-        aws_s3_bucket.ingestion_source_storage.arn
+        aws_s3_bucket.ingestion_source_storage.arn,
+        "${aws_s3_bucket.ingestion_source_storage.arn}/*"
       ]
 
       actions = [
