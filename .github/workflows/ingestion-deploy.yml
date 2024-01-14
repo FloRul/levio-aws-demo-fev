@@ -1,9 +1,9 @@
 name: Deploy ingestion lambda image
 on:
   push:
-    paths:
-      - 'ingestion/src/**'
-      - '.github/workflows/ingestion-deploy.yml'
+    # paths:
+      # - 'ingestion/src/**'
+      # - '.github/workflows/ingestion-deploy.yml'
     branches:
       - dev
 jobs:
