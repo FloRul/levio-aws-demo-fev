@@ -55,8 +55,7 @@ def get_vector_store(collection_name="main_collection"):
 def prepare_prompt(query, docs):
     separator = ".\n"
     context = separator.join(map(lambda x: x[0].page_content, docs))
-    final_prompt = f"""\n\nHuman: You are an agent answering queries related to mailboxes content. 
-    Answer in french the following question : {query}, using the following context :{context}.
+    final_prompt = f"""\n\nHuman: Answer in french the following question : {query}, using the following context :{context}.
     \n\nAssistant:"""
     print(final_prompt)
     return final_prompt
