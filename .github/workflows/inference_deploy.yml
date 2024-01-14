@@ -1,0 +1,46 @@
+name: Deploy inference lambda image
+on:
+  push:
+    # paths:
+    #   - 'inference/src/**'
+    #   - '.github/workflows/inference-deploy.yml'
+    branches:
+      - dev
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: hashicorp/setup-terraform@v3
+    - uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Create ECR repository if it doesn't exist
+      run: |
+        aws ecr describe-repositories --repository-names ${{ vars.INFERENCE_LAMBDA_ECR }} || aws ecr create-repository --repository-name ${{ vars.INFERENCE_LAMBDA_ECR }}
+
+    - name: Compute hash of source code
+      id: compute-hash
+      run: |
+        echo "INFERENCE_IMAGE=$(tar -cf - ./inference/src | sha256sum | cut -d ' ' -f 1)" >> $GITHUB_ENV
+      shell: /usr/bin/bash -e {0}
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      working-directory: ./inference/src
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ vars.INFERENCE_LAMBDA_ECR }}
+        IMAGE_TAG: ${{ env.INFERENCE_IMAGE }}
+      run: |
+        # Build a docker container and
+        # push it to ECR so that it can
+        # be deployed to ECS.
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG

@@ -80,6 +80,18 @@ resource "aws_security_group" "lambda_ingestion_sg" {
   }
 }
 
+resource "aws_security_group" "lambda_inference_sg" {
+  name   = "lambda-inference-sg"
+  vpc_id = module.vpc.vpc_id
+  egress {
+    description = "Lambda Inference"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_security_group" "database_sg" {
   name   = "database-sg-main"
   vpc_id = module.vpc.vpc_id

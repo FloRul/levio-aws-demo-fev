@@ -4,29 +4,8 @@ import boto3
 from langchain_community.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
-from botocore.exceptions import NoCredentialsError, BotoCoreError
-from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-
-def fetch_file(bucket, key):
-    s3 = boto3.client('s3')
-    # Extract file extension from key
-    file_extension = os.path.splitext(key)[1][1:]
-    file_name = os.path.splitext(key)[0]
-    local_filename = f'/tmp/{file_name}.{file_extension}'
-    try:
-        s3.download_file(bucket, key, local_filename)
-    except NoCredentialsError as e:
-        print(e)
-        raise e
-    except BotoCoreError as e:
-        print(e)
-        raise e
-    except ClientError as e:
-        print(e)
-        raise e
-    return local_filename, file_extension, file_name
+bedrock = boto3.client("bedrock-runtime")
 
 
 def get_secret():
@@ -73,34 +52,52 @@ def get_vector_store(collection_name="main_collection"):
                     embedding_function=BedrockEmbeddings(client=bedrock))
 
 
-def extract_content_from_pdf(file_path, file_name):
-    print(f"Extracting content from {file_name}")
-    loader = PyPDFLoader(file_path)
-    docs = loader.load_and_split(
-        text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50))
-    return docs
+def prepare_prompt(query, docs):
+    separator = ".\n"
+    context = separator.join(map(lambda x: x[0].page_content, docs))
+    final_prompt = f"""\n\nHuman: You are an agent answering queries related to mailboxes content. 
+    Answer in french the following question : {query}, using the following context :{context}.
+    \n\nAssistant:"""
+    print(final_prompt)
+    return final_prompt
+
+
+def invoke_model(query, docs, max_tokens=512):
+    prompt = prepare_prompt(query, docs)
+    body = json.dumps({
+        "prompt": prompt,
+        "max_tokens_to_sample": max_tokens,
+        "temperature": 0.3,
+    })
+
+    modelId = "anthropic.claude-instant-v1"
+    accept = "application/json"
+    contentType = "application/json"
+
+    response = bedrock.invoke_model(
+        body=body, modelId=modelId, accept=accept, contentType=contentType)
+    body = response["body"].read().decode("utf-8")
+    json_body = json.loads(body)
+    return json_body['completion']
+
+
+def dummy_invoke_model():
+    return "this is a dummy response"
 
 
 def lambda_handler(event, context):
-    for record in event['Records']:
-        sqs_event = json.loads(record['body'])
-        print(f"SQS event: {sqs_event}")
-        source_bucket = sqs_event["Records"][0]["s3"]["bucket"]["name"]
-        source_key = sqs_event["Records"][0]["s3"]["object"]["key"]
-        print(f"source_bucket: {source_bucket}")
-        print(f"source_key: {source_key}")
-        vector_store = get_vector_store(collection_name=source_bucket)
-        print("vector store retrieved")
-        local_filename, file_extension, file_name = fetch_file(
-            source_bucket, source_key)
-        print(f"local_filename: {local_filename}")
+    vector_store = get_vector_store(collection_name="main_collection")
+    print("vector store retrieved")
+    query = event["query"]
+    max_tokens_to_sample = event['max_tokens']
+    dev_mode = event.get('dev_mode', True)
 
-        if file_extension == 'pdf':
-            print("Extracting text from pdf")
-            docs = extract_content_from_pdf(
-                local_filename, file_name=file_name)
-            vector_store.add_documents(docs)
-            print(f"Extracted {len(docs)} text")
+    if not dev_mode:
+        docs = vector_store.similarity_search_with_relevance_scores(
+            query=query, k=5)
+        response = invoke_model(query, docs, max_tokens_to_sample)
+    else:
+        response = dummy_invoke_model()
 
 # # Retrieve more documents with higher diversity
 # # Useful if your dataset has many similar documents
