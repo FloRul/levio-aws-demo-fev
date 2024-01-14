@@ -23,13 +23,11 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
 
     - name: Create ECR repository if it doesn't exist
-      run: |
-        aws ecr describe-repositories --repository-names ${{ vars.INGESTION_LAMBDA_ECR }} || aws ecr create-repository --repository-name ${{ vars.INGESTION_LAMBDA_ECR }}
+      run: aws ecr describe-repositories --repository-names ${{ vars.INGESTION_LAMBDA_ECR }} || aws ecr create-repository --repository-name ${{ vars.INGESTION_LAMBDA_ECR }}
 
     - name: Compute hash of source code
       id: compute-hash
-      run: |
-        echo "INGESTION_IMAGE=$(tar -cf - ./ingestion/src | sha256sum | cut -d ' ' -f 1)" >> $GITHUB_ENV
+      run: echo "INGESTION_IMAGE=$(tar -cf - ./ingestion/src | sha256sum | cut -d ' ' -f 1)" >> $GITHUB_ENV
       shell: /usr/bin/bash -e {0}
     - name: Build, tag, and push image to Amazon ECR
       id: build-image

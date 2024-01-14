@@ -11,7 +11,11 @@ variable "jumpbox_instance_type" {
   default = "t2.micro"
 }
 
-variable "lambda_image_uri" {
+variable "ingestion_lambda_image_uri" {
+  type     = string
+  nullable = false
+}
+variable "inference_lambda_image_uri" {
   type     = string
   nullable = false
 }

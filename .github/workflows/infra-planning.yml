@@ -25,14 +25,22 @@ jobs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
-    - name: Get the latest image tag
-      id: get-latest-tag
+    - name: Get the latest ingestion image tag
+      id: get-latest-ingestion-tag
       run: |
-        LATEST_TAG=$(aws ecr describe-images --repository-name ${{vars.INGESTION_LAMBDA_ECR}} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text)
-        echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-    - name: Get the image URI from the build job
+        LATEST_INGESTION_TAG=$(aws ecr describe-images --repository-name ${{vars.INGESTION_LAMBDA_ECR}} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text)
+        echo "LATEST_INGESTION_TAG=$LATEST_INGESTION_TAG" >> $GITHUB_ENV
+    - name: Get the ingestion image URI from the build job
       run: |
-        echo "INGESTION_IMAGE=${{ steps.login-ecr.outputs.registry }}/${{ vars.INGESTION_LAMBDA_ECR }}:${{env.LATEST_TAG}}" >> "$GITHUB_ENV"
+        echo "INGESTION_IMAGE=${{ steps.login-ecr.outputs.registry }}/${{ vars.INGESTION_LAMBDA_ECR }}:${{env.LATEST_INGESTION_TAG}}" >> "$GITHUB_ENV"
+    - name: Get the latest inference image tag
+      id: get-latest-inference-tag
+      run: |
+        LATEST_INFERENCE_TAG=$(aws ecr describe-images --repository-name ${{vars.INFERENCE_LAMBDA_ECR}} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text)
+        echo "LATEST_INFERENCE_TAG=$LATEST_INFERENCE_TAG" >> $GITHUB_ENV
+    - name: Get the inference image URI from the build job
+      run: |
+        echo "INFERENCE_IMAGE=${{ steps.login-ecr.outputs.registry }}/${{ vars.INFERENCE_LAMBDA_ECR }}:${{env.LATEST_INFERENCE_TAG}}" >> "$GITHUB_ENV"
     - name: Terraform fmt
       id: fmt
       run: terraform fmt -check
@@ -48,7 +56,7 @@ jobs:
 
     - name: Terraform Plan
       id: plan
-      run: terraform plan -var="lambda_image_uri=${{ env.INGESTION_IMAGE }}" -no-color
+      run: terraform plan -var="lambda_image_uri=${{ env.INGESTION_IMAGE }}" -var="lambda_image_uri=${{ env.INFERENCE_IMAGE }}"  -no-color
       continue-on-error: true
 
     - uses: actions/github-script@v6
