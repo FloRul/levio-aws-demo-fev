@@ -48,4 +48,4 @@ jobs:
     - name: Terraform Apply
       id: terraform-Apply
       run: |
-        terraform apply -var="ingestion_lambda_image_uri=${{ env.INGESTION_IMAGE }}" -var="inference_lambda_image_uri=${{ env.INFERENCE_IMAGE }}"  -no-color
+        terraform apply -var="ingestion_lambda_image_uri=${{ env.INGESTION_IMAGE }}" -var="inference_lambda_image_uri=${{ env.INFERENCE_IMAGE }}" -no-color -auto-approve
