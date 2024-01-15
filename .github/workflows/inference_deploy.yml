@@ -1,9 +1,9 @@
 name: Deploy inference lambda image
 on:
   push:
-    # paths:
-    #   - 'inference/src/**'
-    #   - '.github/workflows/inference-deploy.yml'
+    paths:
+      - 'inference/src/**'
+      - '.github/workflows/inference-deploy.yml'
     branches:
       - dev
 jobs:
