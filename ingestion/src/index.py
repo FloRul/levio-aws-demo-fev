@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError, BotoCoreError
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+import logging
 
 
 def fetch_file(bucket, key):
@@ -82,40 +83,43 @@ def extract_content_from_pdf(file_path, file_name):
     return docs
 
 
+OBJECT_CREATED = 'ObjectCreated'
+OBJECT_REMOVED = 'ObjectRemoved'
+
+
+def get_bucket_and_key(record):
+    bucket = record[0]["s3"]["bucket"]["name"]
+    key = record[0]["s3"]["object"]["key"]
+    return bucket, key
+
+
 def lambda_handler(event, context):
     records = json.loads(event['body'])["Records"]
     for record in records:
         eventName = record['eventName']
-        print(f"eventName: {eventName}")
+        logging.info(f"eventName: {eventName}")
         try:
-            if eventName.startswith('ObjectCreated'):
-                source_bucket = record[0]["s3"]["bucket"]["name"]
-                source_key = record[0]["s3"]["object"]["key"]
-                print(f"source_bucket: {source_bucket}")
-                print(f"source_key: {source_key}")
-                vector_store = get_vector_store(collection_name=source_bucket)
-                print("vector store retrieved")
+            bucket, key = get_bucket_and_key(record)
+            logging.info(f"source_bucket: {bucket}, source_key: {key}")
+
+            vector_store = get_vector_store(collection_name=bucket)
+
+            if eventName.startswith(OBJECT_CREATED):
                 local_filename, file_extension, file_name = fetch_file(
-                    source_bucket, source_key)
-                print(f"local_filename: {local_filename}")
+                    bucket, key)
+                logging.info(f"local_filename: {local_filename}")
 
                 if file_extension == 'pdf':
-                    print("Extracting text from pdf")
+                    logging.info("Extracting text from pdf")
                     docs = extract_content_from_pdf(
                         local_filename, file_name=file_name)
                     vector_store.add_documents(docs)
-                    print(f"Extracted {len(docs)} text")
+                    logging.info(f"Extracted {len(docs)} text")
 
-            elif (eventName.startswith('ObjectRemoved')):
-                source_bucket = record[0]["s3"]["bucket"]["name"]
-                source_key = record[0]["s3"]["object"]["key"]
-                print(f"source_bucket: {source_bucket}")
-                print(f"source_key: {source_key}")
-                vector_store = get_vector_store(collection_name=source_bucket)
-                print("vector store retrieved")
-                vector_store.remove_document(source_key)
-                print(f"Removed document {source_key}")
+            elif eventName.startswith(OBJECT_REMOVED):
+                # TODO: Uncomment the following lines when ready to use
+                # vector_store.remove_document(key)
+                logging.info(f"Removed document {key}")
 
         except Exception as e:
-            print(e)
-            raise e
+            logging.error(e)            # Add your indented block of code here
