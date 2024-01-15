@@ -91,9 +91,9 @@ def lambda_handler(event, context):
         print(event)
         query = event['query']
         max_tokens_to_sample = event['max_tokens']
-        dev_mode = event.get('dev_mode', True)
+        dev_mode = event.get('dev_mode', 1)
 
-        if not dev_mode:
+        if dev_mode == 0:
             docs = vector_store.similarity_search_with_relevance_scores(
                 query=query, k=5)
             response = invoke_model(query, docs, max_tokens_to_sample)
