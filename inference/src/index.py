@@ -85,19 +85,31 @@ def dummy_invoke_model():
 
 
 def lambda_handler(event, context):
-    vector_store = get_vector_store(collection_name="main_collection")
-    print("vector store retrieved")
-    print(event)
-    query = event['query']
-    max_tokens_to_sample = event['max_tokens']
-    dev_mode = event.get('dev_mode', True)
+    try:
+        vector_store = get_vector_store(collection_name="main_collection")
+        print("vector store retrieved")
+        print(event)
+        query = event['query']
+        max_tokens_to_sample = event['max_tokens']
+        dev_mode = event.get('dev_mode', True)
 
-    if not dev_mode:
-        docs = vector_store.similarity_search_with_relevance_scores(
-            query=query, k=5)
-        response = invoke_model(query, docs, max_tokens_to_sample)
-    else:
-        response = dummy_invoke_model()
+        if not dev_mode:
+            docs = vector_store.similarity_search_with_relevance_scores(
+                query=query, k=5)
+            response = invoke_model(query, docs, max_tokens_to_sample)
+        else:
+            response = dummy_invoke_model()
+
+        return {
+            "statusCode": 200,
+            "body": json.dumps(response)
+        }
+    except Exception as e:
+        print(e)
+        return {
+            "statusCode": 500,
+            "body": json.dumps(e)
+        }
 
 # # Retrieve more documents with higher diversity
 # # Useful if your dataset has many similar documents
