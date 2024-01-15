@@ -78,7 +78,8 @@ def extract_content_from_pdf(file_path, file_name):
     loader = PyPDFLoader(file_path)
     docs = loader.load_and_split(
         text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50))
-    docs["metadata"]["source"] = file_name
+    for doc in docs:
+        doc.metadata['source'] = file_name 
     return docs
 
 
