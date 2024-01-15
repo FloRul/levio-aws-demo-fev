@@ -88,6 +88,7 @@ OBJECT_REMOVED = 'ObjectRemoved'
 
 
 def get_bucket_and_key(record):
+    print(record)
     bucket = record["s3"]["bucket"]["name"]
     key = record["s3"]["object"]["key"]
     return bucket, key
