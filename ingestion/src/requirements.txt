@@ -6,4 +6,3 @@ pgvector
 boto3>=1.28.85
 pypdf
 tabula-py
-psycopg2
