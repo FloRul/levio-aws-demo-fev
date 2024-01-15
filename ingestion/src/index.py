@@ -83,15 +83,14 @@ def extract_content_from_pdf(file_path, file_name):
 
 
 def lambda_handler(event, context):
-    for record in event['Records']:
+    records = json.loads(event['body'])["Records"]
+    for record in records:
         eventName = record['eventName']
+        print(f"eventName: {eventName}")
         try:
-
             if eventName.startswith('ObjectCreated'):
-                sqs_event = json.loads(record['body'])
-                print(f"SQS event: {sqs_event}")
-                source_bucket = sqs_event["Records"][0]["s3"]["bucket"]["name"]
-                source_key = sqs_event["Records"][0]["s3"]["object"]["key"]
+                source_bucket = record[0]["s3"]["bucket"]["name"]
+                source_key = record[0]["s3"]["object"]["key"]
                 print(f"source_bucket: {source_bucket}")
                 print(f"source_key: {source_key}")
                 vector_store = get_vector_store(collection_name=source_bucket)
@@ -108,10 +107,8 @@ def lambda_handler(event, context):
                     print(f"Extracted {len(docs)} text")
 
             elif (eventName.startswith('ObjectRemoved')):
-                sqs_event = json.loads(record['body'])
-                print(f"SQS event: {sqs_event}")
-                source_bucket = sqs_event["Records"][0]["s3"]["bucket"]["name"]
-                source_key = sqs_event["Records"][0]["s3"]["object"]["key"]
+                source_bucket = record[0]["s3"]["bucket"]["name"]
+                source_key = record[0]["s3"]["object"]["key"]
                 print(f"source_bucket: {source_bucket}")
                 print(f"source_key: {source_key}")
                 vector_store = get_vector_store(collection_name=source_bucket)
