@@ -94,6 +94,7 @@ def get_bucket_and_key(record):
 
 
 def lambda_handler(event, context):
+    print(event)
     records = json.loads(event['body'])["Records"]
     for record in records:
         eventName = record['eventName']
