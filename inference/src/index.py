@@ -87,6 +87,8 @@ def dummy_invoke_model():
 def lambda_handler(event, context):
     vector_store = get_vector_store(collection_name="main_collection")
     print("vector store retrieved")
+    print(event)
+    e = json.loads(event)
     query = event["query"]
     max_tokens_to_sample = event['max_tokens']
     dev_mode = event.get('dev_mode', True)
