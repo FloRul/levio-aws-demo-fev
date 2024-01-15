@@ -141,11 +141,8 @@ def lambda_handler(event, context):
                     return len(docs)
 
             elif eventName.startswith(OBJECT_REMOVED):
-                deleted_rows = delete_documents(key)
-
                 print(f"Removing documents with source = {key}")
-                docs = vector_store.search_documents(
-                    query=f"source:{key}", k=100)
+                deleted_rows = delete_documents(key)
                 print(f"Removed document {key}")
                 return deleted_rows
 
