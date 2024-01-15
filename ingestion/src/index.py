@@ -122,4 +122,4 @@ def lambda_handler(event, context):
                 logging.info(f"Removed document {key}")
 
         except Exception as e:
-            logging.error(e)            # Add your indented block of code here
+            logging.error(e)
