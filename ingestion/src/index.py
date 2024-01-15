@@ -88,16 +88,14 @@ OBJECT_REMOVED = 'ObjectRemoved'
 
 
 def get_bucket_and_key(record):
-    bucket = record[0]["s3"]["bucket"]["name"]
-    key = record[0]["s3"]["object"]["key"]
+    bucket = record["s3"]["bucket"]["name"]
+    key = record["s3"]["object"]["key"]
     return bucket, key
 
 
 def lambda_handler(event, context):
     print(event)
     records = json.loads(event['Records'][0]['body'])['Records']
-    print(records)
-    print(type(records))
     for record in records:
         eventName = record['eventName']
         logging.info(f"eventName: {eventName}")
