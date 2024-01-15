@@ -78,55 +78,47 @@ def extract_content_from_pdf(file_path, file_name):
     loader = PyPDFLoader(file_path)
     docs = loader.load_and_split(
         text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50))
+    docs["metadata"]["source"] = file_name
     return docs
 
 
 def lambda_handler(event, context):
     for record in event['Records']:
-        sqs_event = json.loads(record['body'])
-        print(f"SQS event: {sqs_event}")
-        source_bucket = sqs_event["Records"][0]["s3"]["bucket"]["name"]
-        source_key = sqs_event["Records"][0]["s3"]["object"]["key"]
-        print(f"source_bucket: {source_bucket}")
-        print(f"source_key: {source_key}")
-        vector_store = get_vector_store(collection_name=source_bucket)
-        print("vector store retrieved")
-        local_filename, file_extension, file_name = fetch_file(
-            source_bucket, source_key)
-        print(f"local_filename: {local_filename}")
+        eventName = record['eventName']
+        try:
 
-        if file_extension == 'pdf':
-            print("Extracting text from pdf")
-            docs = extract_content_from_pdf(
-                local_filename, file_name=file_name)
-            vector_store.add_documents(docs)
-            print(f"Extracted {len(docs)} text")
+            if eventName.startswith('ObjectCreated'):
+                sqs_event = json.loads(record['body'])
+                print(f"SQS event: {sqs_event}")
+                source_bucket = sqs_event["Records"][0]["s3"]["bucket"]["name"]
+                source_key = sqs_event["Records"][0]["s3"]["object"]["key"]
+                print(f"source_bucket: {source_bucket}")
+                print(f"source_key: {source_key}")
+                vector_store = get_vector_store(collection_name=source_bucket)
+                print("vector store retrieved")
+                local_filename, file_extension, file_name = fetch_file(
+                    source_bucket, source_key)
+                print(f"local_filename: {local_filename}")
 
-# # Retrieve more documents with higher diversity
-# # Useful if your dataset has many similar documents
-# vectorstore.as_retriever(
-#     search_type="mmr",
-#     search_kwargs={"k": 6, "lambda_mult": 0.25}
-# )
+                if file_extension == 'pdf':
+                    print("Extracting text from pdf")
+                    docs = extract_content_from_pdf(
+                        local_filename, file_name=file_name)
+                    vector_store.add_documents(docs)
+                    print(f"Extracted {len(docs)} text")
 
-# # Fetch more documents for the MMR algorithm to consider
-# # But only return the top 5
-# vectorstore.as_retriever(
-#     search_type="mmr",
-#     search_kwargs={"k": 5, "fetch_k": 50}
-# )
+            elif (eventName.startswith('ObjectRemoved')):
+                sqs_event = json.loads(record['body'])
+                print(f"SQS event: {sqs_event}")
+                source_bucket = sqs_event["Records"][0]["s3"]["bucket"]["name"]
+                source_key = sqs_event["Records"][0]["s3"]["object"]["key"]
+                print(f"source_bucket: {source_bucket}")
+                print(f"source_key: {source_key}")
+                vector_store = get_vector_store(collection_name=source_bucket)
+                print("vector store retrieved")
+                vector_store.remove_document(source_key)
+                print(f"Removed document {source_key}")
 
-# # Only retrieve documents that have a relevance score
-# # Above a certain threshold
-# vectorstore.as_retriever(
-#     search_type="similarity_score_threshold",
-#     search_kwargs={"score_threshold": 0.8}
-# )
-
-# # Only get the single most similar document from the dataset
-# vectorstore.as_retriever(search_kwargs={"k": 1})
-
-# # Use a filter to only retrieve documents from a specific paper
-# docsearch.as_retriever(
-#     search_kwargs={"filter": {"paper_title": "GPT-4 Technical Report"}}
-# )
+        except Exception as e:
+            print(e)
+            raise e
