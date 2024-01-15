@@ -50,8 +50,11 @@ def delete_documents(filename: str):
             DELETE FROM langchain_pg_embedding
             WHERE cmetadata->>'source' = %s;
             """
+            print(f"Executing query: {sql_query}")
+            print(f"With parameters: {filename}")
             cur.execute(sql_query, (filename,))
             deleted_rows = cur.rowcount
+            print(f"Number of deleted rows: {deleted_rows}")
     return deleted_rows
 
 
@@ -141,10 +144,7 @@ def lambda_handler(event, context):
                     return len(docs)
 
             elif eventName.startswith(OBJECT_REMOVED):
-                print(f"Removing documents with source = {key}")
-                deleted_rows = delete_documents(key)
-                print(f"Removed document {key}")
-                return deleted_rows
+                return delete_documents(filename=key)
 
         except Exception as e:
             print(e)
