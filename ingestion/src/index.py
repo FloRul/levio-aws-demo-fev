@@ -7,6 +7,52 @@ from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError, BotoCoreError
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+import psycopg2
+
+
+def get_secret():
+    secret_name = os.environ.get("PGVECTOR_PASSWORD_SECRET_NAME")
+    region_name = "us-west-2"
+    session = boto3.Session()
+    client = session.client(
+        service_name="secretsmanager",
+        region_name=region_name
+    )
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+        secret = get_secret_value_response["SecretString"]
+        return secret
+    except ClientError as e:
+        print(e)
+        raise (e)
+
+
+PGVECTOR_DRIVER = os.environ.get("PGVECTOR_DRIVER", "psycopg2")
+PGVECTOR_HOST = os.environ.get("PGVECTOR_HOST", "localhost")
+PGVECTOR_PORT = int(os.environ.get("PGVECTOR_PORT", 5432))
+PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "postgres")
+PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
+PGVECTOR_PASSWORD = get_secret()
+
+
+def delete_documents(filename: str):
+    with psycopg2.connect(
+        dbname=PGVECTOR_DATABASE,
+        user=PGVECTOR_USER,
+        password=PGVECTOR_PASSWORD,
+        host=PGVECTOR_HOST,
+        port=PGVECTOR_PORT
+    ) as conn:
+        with conn.cursor() as cur:
+            sql_query = f"""
+            DELETE FROM langchain_pg_embedding
+            WHERE cmetadata->>'source' = %s;
+            """
+            cur.execute(sql_query, (filename,))
+            deleted_rows = cur.rowcount
+    return deleted_rows
 
 
 def fetch_file(bucket, key):
@@ -29,32 +75,7 @@ def fetch_file(bucket, key):
     return local_filename, file_extension, file_name
 
 
-def get_secret():
-    secret_name = os.environ.get("PGVECTOR_PASSWORD_SECRET_NAME")
-    region_name = "us-west-2"
-    session = boto3.Session()
-    client = session.client(
-        service_name="secretsmanager",
-        region_name=region_name
-    )
-    try:
-        get_secret_value_response = client.get_secret_value(
-            SecretId=secret_name
-        )
-        secret = get_secret_value_response["SecretString"]
-        return secret
-    except ClientError as e:
-        print(e)
-        raise (e)
-
-
 def get_connection_string():
-    PGVECTOR_DRIVER = os.environ.get("PGVECTOR_DRIVER", "psycopg2")
-    PGVECTOR_HOST = os.environ.get("PGVECTOR_HOST", "localhost")
-    PGVECTOR_PORT = int(os.environ.get("PGVECTOR_PORT", 5432))
-    PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "postgres")
-    PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
-    PGVECTOR_PASSWORD = get_secret()
     CONNECTION_STRING = PGVector.connection_string_from_db_params(
         driver=PGVECTOR_DRIVER,
         host=PGVECTOR_HOST,
@@ -79,7 +100,7 @@ def extract_content_from_pdf(file_path, file_name):
     docs = loader.load_and_split(
         text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50))
     for doc in docs:
-        doc.metadata['source'] = file_name 
+        doc.metadata['source'] = file_name
     return docs
 
 
@@ -117,11 +138,17 @@ def lambda_handler(event, context):
                         local_filename, file_name=file_name)
                     vector_store.add_documents(docs)
                     print(f"Extracted {len(docs)} text")
+                    return len(docs)
 
             elif eventName.startswith(OBJECT_REMOVED):
-                # TODO: Uncomment the following lines when ready to use
-                # vector_store.remove_document(key)
+                deleted_rows = delete_documents(key)
+
+                print(f"Removing documents with source = {key}")
+                docs = vector_store.search_documents(
+                    query=f"source:{key}", k=100)
                 print(f"Removed document {key}")
+                return deleted_rows
 
         except Exception as e:
             print(e)
+            raise e

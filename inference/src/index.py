@@ -4,6 +4,7 @@ import boto3
 from langchain_community.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
+import psycopg2
 
 bedrock = boto3.client("bedrock-runtime")
 
@@ -27,13 +28,14 @@ def get_secret():
         raise (e)
 
 
+PGVECTOR_DRIVER = os.environ.get("PGVECTOR_DRIVER", "psycopg2")
+PGVECTOR_HOST = os.environ.get("PGVECTOR_HOST", "localhost")
+PGVECTOR_PORT = int(os.environ.get("PGVECTOR_PORT", 5432))
+PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "postgres")
+PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
+PGVECTOR_PASSWORD = get_secret()
+
 def get_connection_string():
-    PGVECTOR_DRIVER = os.environ.get("PGVECTOR_DRIVER", "psycopg2")
-    PGVECTOR_HOST = os.environ.get("PGVECTOR_HOST", "localhost")
-    PGVECTOR_PORT = int(os.environ.get("PGVECTOR_PORT", 5432))
-    PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "postgres")
-    PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
-    PGVECTOR_PASSWORD = get_secret()
     CONNECTION_STRING = PGVector.connection_string_from_db_params(
         driver=PGVECTOR_DRIVER,
         host=PGVECTOR_HOST,
@@ -42,6 +44,7 @@ def get_connection_string():
         user=PGVECTOR_USER,
         password=PGVECTOR_PASSWORD,
     )
+
     return CONNECTION_STRING
 
 
