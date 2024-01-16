@@ -48,7 +48,7 @@ def delete_documents(filename: str):
         with conn.cursor() as cur:
             sql_query = f"""
             DELETE FROM langchain_pg_embedding
-            WHERE cmetadata->>'source' = %s;
+            WHERE cmetadata->>'source' = '{filename}';
             """
             print(f"Executing query: {sql_query}")
             print(f"With parameters: {filename}")
