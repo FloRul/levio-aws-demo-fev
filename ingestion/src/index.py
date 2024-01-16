@@ -62,8 +62,7 @@ def fetch_file(bucket, key):
     s3 = boto3.client('s3')
     # Extract file extension from key
     file_extension = os.path.splitext(key)[1][1:]
-    file_name = os.path.splitext(key)[0]
-    local_filename = f'/tmp/{file_name}.{file_extension}'
+    local_filename = f'/tmp/{key}'
     try:
         s3.download_file(bucket, key, local_filename)
     except NoCredentialsError as e:
@@ -75,7 +74,7 @@ def fetch_file(bucket, key):
     except ClientError as e:
         print(e)
         raise e
-    return local_filename, file_extension, file_name
+    return local_filename, file_extension, key
 
 
 def get_connection_string():
