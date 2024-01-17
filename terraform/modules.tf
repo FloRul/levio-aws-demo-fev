@@ -41,6 +41,6 @@ module "memory" {
   aws_region                = var.aws_region
   lambda_function_name      = "levio-demo-fev-memory"
   lambda_image_uri          = var.memory_lambda_image_uri
-  dynamo_history_table_name = "Person"
+  dynamo_history_table_name = "levio-demo-fev-chat-history"
 }
 
