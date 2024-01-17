@@ -2,7 +2,7 @@ name: Deploy ingestion lambda image
 on:
   push:
     # paths:
-    #   - 'memory/src/**'
+    #   - 'conversation_memory/src/**'
     #   - '.github/workflows/memory-deploy.yml'
     branches:
       - dev
@@ -27,7 +27,7 @@ jobs:
 
     - name: Compute hash of source code
       id: compute-hash
-      run: echo "MEMORY_IMAGE=$(tar -cf - ./memory/src | sha256sum | cut -d ' ' -f 1)" >> $GITHUB_ENV
+      run: echo "MEMORY_IMAGE=$(tar -cf - ./conversation_memory/src | sha256sum | cut -d ' ' -f 1)" >> $GITHUB_ENV
       shell: /usr/bin/bash -e {0}
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
