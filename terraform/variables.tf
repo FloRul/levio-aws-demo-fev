@@ -19,3 +19,8 @@ variable "inference_lambda_image_uri" {
   type     = string
   nullable = false
 }
+
+variable "memory_lambda_image_uri" {
+  type     = string
+  nullable = false
+}

@@ -31,3 +31,16 @@ module "inference" {
   lambda_image_uri               = var.inference_lambda_image_uri
   lambda_function_name           = "levio-demo-fev-inference"
 }
+
+module "memory" {
+  source = "../conversation_memory"
+  lambda_vpc_security_group_ids = [
+    aws_security_group.lambda_memory_sg.id,
+  ]
+  lambda_vpc_subnet_ids     = module.vpc.public_subnets
+  aws_region                = var.aws_region
+  lambda_function_name      = "levio-demo-fev-memory"
+  lambda_image_uri          = var.memory_lambda_image_uri
+  dynamo_history_table_name = "Person"
+}
+

@@ -4,9 +4,9 @@ import boto3
 from langchain_community.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
-import psycopg2
 
 bedrock = boto3.client("bedrock-runtime")
+lambda_client = boto3.client('lambda')
 
 
 def get_secret():
@@ -35,6 +35,9 @@ PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "postgres")
 PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
 PGVECTOR_PASSWORD = get_secret()
 
+RELEVANCE_TRESHOLD = 0.65
+
+
 def get_connection_string():
     CONNECTION_STRING = PGVector.connection_string_from_db_params(
         driver=PGVECTOR_DRIVER,
@@ -55,11 +58,41 @@ def get_vector_store(collection_name="main_collection"):
                     embedding_function=BedrockEmbeddings(client=bedrock))
 
 
-def prepare_prompt(query, docs):
-    separator = ".\n"
-    context = separator.join(map(lambda x: x[0].page_content, docs))
-    final_prompt = f"""\n\nHuman: Answer in french the following question : {query}, using the following context :{context}.
-    \n\nAssistant:"""
+def update_history(case_id, human_message, assistant_message):
+    try:
+        payload = {
+            "case_id": case_id,
+            "human_message": human_message,
+            "assistant_message": assistant_message
+        }
+        response = lambda_client.invoke(
+            FunctionName=os.environ.get("MEMORY_LAMBDA_NAME"),
+            InvocationType='RequestResponse',
+            Payload=json.dumps(payload)
+        )
+        return response
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+        return e.response['Error']['Message']
+
+
+def prepare_prompt(query:str, docs:list, history:list):
+    final_prompt = "{}.Answer in french.\n\nAssistant:"
+
+    basic_prompt = f"""\n\nHuman: The user sent the following message : {query}."""
+
+    if (len(docs) > 0):
+        docs_context = ".\n".join(map(lambda x: x[0].page_content, docs))
+        document_prompt = f"""Use the following documents corpus to answer: <corpus>{docs_context}</corpus>."""
+        basic_prompt = f"""{basic_prompt}\n{document_prompt}"""
+
+    if (len(history) > 0):
+        history_context = ".\n".join(
+            map(lambda x: f"""{x['human_message']}{x['assistant_message']}""", history))
+        history_prompt = f"""Consider using the following history : <history>{history_context}</history>."""
+        basic_prompt = f"""{basic_prompt}\n{history_prompt}"""
+
+    final_prompt.format(basic_prompt)
     print(final_prompt)
     return final_prompt
 
@@ -92,14 +125,28 @@ def lambda_handler(event, context):
         vector_store = get_vector_store(collection_name="main_collection")
         print("vector store retrieved")
         print(event)
+
         query = event['query']
         max_tokens_to_sample = event['max_tokens']
         dev_mode = event.get('dev_mode', 1)
+        case_id = event['case_id']
 
         if dev_mode == 0:
             docs = vector_store.similarity_search_with_relevance_scores(
                 query=query, k=5)
+
+            # filter out documents with low relevance score
+            # only keep the document
+            docs = [x[0] for x in docs if x[1] > RELEVANCE_TRESHOLD]
+
+            # retrieve chat history
+            history = update_history(case_id, query, docs)
+
+            # prepare the prompt
+            prompt = prepare_prompt(query, docs, history)
+
             response = invoke_model(query, docs, max_tokens_to_sample)
+            update_history(case_id, query, response)
         else:
             response = dummy_invoke_model()
 
