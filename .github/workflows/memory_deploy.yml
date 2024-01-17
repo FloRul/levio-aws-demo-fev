@@ -1,9 +1,9 @@
 name: Deploy ingestion lambda image
 on:
   push:
-    paths:
-      - 'memory/src/**'
-      - '.github/workflows/memory-deploy.yml'
+    # paths:
+    #   - 'memory/src/**'
+    #   - '.github/workflows/memory-deploy.yml'
     branches:
       - dev
 jobs:
