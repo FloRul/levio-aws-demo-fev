@@ -24,15 +24,15 @@ resource "aws_dynamodb_table" "basic-conversation_memory_table-table" {
     type = "S"
   }
 
-  attribute {
-    name = "HumanMessage"
-    type = "S"
-  }
+  # attribute {
+  #   name = "HumanMessage"
+  #   type = "S"
+  # }
 
-  attribute {
-    name = "AssistantMessage"
-    type = "S"
-  }
+  # attribute {
+  #   name = "AssistantMessage"
+  #   type = "S"
+  # }
   global_secondary_index {
     name            = "CaseId-SK-index"
     hash_key        = "CaseId"
