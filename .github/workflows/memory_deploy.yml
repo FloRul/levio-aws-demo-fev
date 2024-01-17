@@ -31,7 +31,7 @@ jobs:
       shell: /usr/bin/bash -e {0}
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
-      working-directory: ./memory/src
+      working-directory: ./conversation_memory/src
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ vars.MEMORY_LAMBDA_ECR }}
