@@ -23,6 +23,7 @@ jobs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
+
     - name: Get the latest ingestion image tag
       id: get-latest-ingestion-tag
       run: |
@@ -31,6 +32,15 @@ jobs:
     - name: Get the ingestion image URI from the build job
       run: |
         echo "INGESTION_IMAGE=${{ steps.login-ecr.outputs.registry }}/${{ vars.INGESTION_LAMBDA_ECR }}:${{env.LATEST_INGESTION_TAG}}" >> "$GITHUB_ENV"
+    
+    - name: Get the latest memory image tag
+      id: get-latest-memory-tag
+      run: |
+        LATEST_MEMORY_TAG=$(aws ecr describe-images --repository-name ${{vars.MEMORY_LAMBDA_ECR}} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text)
+        echo "LATEST_MEMORY_TAG=$LATEST_MEMORY_TAG" >> $GITHUB_ENV
+    - name: Get the memory image URI from the build job
+      run: |
+        echo "MEMORY_IMAGE=${{ steps.login-ecr.outputs.registry }}/${{ vars.MEMORY_LAMBDA_ECR }}:${{env.LATEST_MEMORY_TAG}}" >> "$GITHUB_ENV"
     
     - name: Get the latest inference image tag
       id: get-latest-inference-tag
@@ -48,4 +58,4 @@ jobs:
     - name: Terraform Apply
       id: terraform-Apply
       run: |
-        terraform apply -var="ingestion_lambda_image_uri=${{ env.INGESTION_IMAGE }}" -var="inference_lambda_image_uri=${{ env.INFERENCE_IMAGE }}" -no-color -auto-approve
+        terraform apply -var="ingestion_lambda_image_uri=${{ env.INGESTION_IMAGE }}" -var="inference_lambda_image_uri=${{ env.INFERENCE_IMAGE }}" -var="memory_lambda_image_uri=${{ env.MEMORY_IMAGE }}" -no-color -auto-approve

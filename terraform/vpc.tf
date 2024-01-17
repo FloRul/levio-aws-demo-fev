@@ -23,7 +23,17 @@ resource "aws_vpc_endpoint" "s3_endpoint" {
   service_name      = "com.amazonaws.${var.aws_region}.s3"
   vpc_endpoint_type = "Gateway"
 
-  route_table_ids = module.vpc.public_route_table_ids
+  route_table_ids     = module.vpc.public_route_table_ids
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "dynamo_db_endpoint" {
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.dynamodb"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.dynamo_sg.id]
+  subnet_ids          = module.vpc.public_subnets
+  private_dns_enabled = true
 }
 
 resource "aws_vpc_endpoint" "secrets_manager_endpoint" {
@@ -92,6 +102,18 @@ resource "aws_security_group" "lambda_inference_sg" {
   }
 }
 
+resource "aws_security_group" "lambda_memory_sg" {
+  name   = "lambda-memory-sg"
+  vpc_id = module.vpc.vpc_id
+  egress {
+    description = "Lambda Memory"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_security_group" "database_sg" {
   name   = "database-sg-main"
   vpc_id = module.vpc.vpc_id
@@ -120,5 +142,17 @@ resource "aws_security_group" "jumpbox_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "dynamo_db_sg" {
+  name   = "dynamo-sg"
+  vpc_id = module.vpc.vpc_id
+  ingress {
+    description     = "Dynamo DB ingress"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lambda_memory_sg.id]
   }
 }
