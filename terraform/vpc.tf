@@ -31,7 +31,7 @@ resource "aws_vpc_endpoint" "dynamo_db_endpoint" {
   vpc_id              = module.vpc.vpc_id
   service_name        = "com.amazonaws.${var.aws_region}.dynamodb"
   vpc_endpoint_type   = "Interface"
-  security_group_ids  = [aws_security_group.dynamo_sg.id]
+  security_group_ids  = [aws_security_group.dynamo_db_sg.id]
   subnet_ids          = module.vpc.public_subnets
   private_dns_enabled = true
 }
