@@ -149,7 +149,7 @@ def lambda_handler(event, context):
 
         session_id = event['sessionId']
         intent = event['sessionState']['intent']['name']
-        if intent == "Intent":
+        if intent == "Intent" or intent == "FallbackIntent":
             vector_store = get_vector_store(collection_name="main_collection")
             query = event['transcriptions'][0]['transcription']
 
@@ -176,7 +176,7 @@ def lambda_handler(event, context):
             else:
                 response = dummy_invoke_model()
 
-            
+
         return {
             "statusCode": 200,
             "body": json.dumps(response)
