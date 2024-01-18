@@ -2,8 +2,6 @@ from gc import enable
 import json
 import os
 import boto3
-from langchain_community.embeddings import BedrockEmbeddings
-from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
 from retrieval import Retrieval
 from history import History
@@ -34,7 +32,7 @@ CONTENT_TYPE = "application/json"
 
 
 def prepare_prompt(query: str, docs: list, history: list):
-    final_prompt = "{}.Answer in french.\n\nAssistant:"
+    final_prompt = "{} Answer in french.\n\nAssistant:"
 
     basic_prompt = f"""\n\nHuman: The user sent the following message : {query}."""
 
@@ -51,7 +49,6 @@ def prepare_prompt(query: str, docs: list, history: list):
         basic_prompt = f"""{basic_prompt}\n{history_prompt}"""
 
     final_prompt = final_prompt.format(basic_prompt)
-    print(final_prompt)
     return final_prompt
 
 
@@ -74,12 +71,16 @@ def invoke_model(prompt: str, max_tokens: int):
             "temperature": 0.3,
         }
     )
-    response = boto3.client("bedrock-runtime").invoke_model(
-        body=body, modelId=MODEL_ID, accept=ACCEPT, contentType=CONTENT_TYPE
-    )
-    body = response["body"].read().decode("utf-8")
-    json_body = json.loads(body)
-    return json_body["completion"]
+    try:
+        response = boto3.client("bedrock-runtime").invoke_model(
+            body=body, modelId=MODEL_ID, accept=ACCEPT, contentType=CONTENT_TYPE
+        )
+        body = response["body"].read().decode("utf-8")
+        json_body = json.loads(body)
+        return json_body["completion"]
+    except Exception as e:
+        print(f"Model invocation error : {e}")
+        raise e
 
 
 def lambda_handler(event, context):
@@ -130,4 +131,4 @@ def lambda_handler(event, context):
         return prepare_lex_response(response, intent)
     except Exception as e:
         print(e)
-        return prepare_lex_response("Sorry, I did not understand that.", intent)
+        return prepare_lex_response("Sorry, an error has happened.", intent)
