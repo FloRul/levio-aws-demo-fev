@@ -132,7 +132,8 @@ def lambda_handler(event, context):
                 if enable_history == 1:
                     history.add(human_message=query, assistant_message=response)
 
-        return prepare_lex_response(response, intent)
+        lex_response = prepare_lex_response(response, intent)
+        return lex_response
     except Exception as e:
         print(e)
         return prepare_lex_response("Sorry, an error has happened.", intent)
