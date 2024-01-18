@@ -29,14 +29,14 @@ def lambda_handler(event, context):
 
         # Query the last 10 items for the same caseId
         response = table.query(
-            KeyConditionExpression=Key('PK').eq(case_id),
+            KeyConditionExpression=Key('CaseId').eq(case_id),
             ScanIndexForward=False,
             Limit=10
         )
 
         return {
             'statusCode': 200,
-            'body': json.dumps(response['Items'])
+            'body': json.dumps(response)
         }
     except ClientError as e:
         print(e.response['Error']['Message'])
