@@ -18,6 +18,8 @@ module "lambda_function_container_image" {
     PGVECTOR_DATABASE             = var.pg_vector_database
     PGVECTOR_USER                 = var.pg_vector_user
     PGVECTOR_PASSWORD_SECRET_NAME = var.pg_vector_password_secret_name
+    DEV_MODE                      = 1
+    MAX_TOKENS                    = 100
   }
   policy_statements = {
     log_group = {

@@ -3,8 +3,6 @@ import boto3
 from botocore.exceptions import ClientError
 import os
 import json
-import time
-import uuid
 
 dynamodb = boto3.resource('dynamodb')
 PROMPT_TEMPLATE = """\n\nHuman:{}\n\nAssistant:{}"""
