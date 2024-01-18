@@ -1,4 +1,3 @@
-from gc import enable
 import json
 import os
 import boto3
@@ -34,7 +33,7 @@ CONTENT_TYPE = "application/json"
 def prepare_prompt(query: str, docs: list, history: list):
     final_prompt = "{} Answer in french.\n\nAssistant:"
 
-    basic_prompt = f"""\n\nHuman: The user sent the following message : {query}."""
+    basic_prompt = f"""\n\nHuman: The user sent the following message : <message>{query}</message>."""
 
     if len(docs) > 0:
         docs_context = ".\n".join(map(lambda x: x[0].page_content, docs))
@@ -126,6 +125,7 @@ def lambda_handler(event, context):
                 prompt = prepare_prompt(query, docs, chat_history)
                 print(f"prompt :{prompt}")
                 response = invoke_model(prompt, max_tokens_to_sample)
+                print(f"response :{response}")
                 history.add(human_message=query, assistant_message=response)
 
         return prepare_lex_response(response, intent)
