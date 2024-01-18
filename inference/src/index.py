@@ -2,8 +2,6 @@ from gc import enable
 import json
 import os
 import boto3
-from langchain_community.embeddings import BedrockEmbeddings
-from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
 from retrieval import Retrieval
 from history import History
