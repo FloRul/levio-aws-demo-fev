@@ -4,6 +4,7 @@ import boto3
 from langchain_community.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores.pgvector import PGVector
 from botocore.exceptions import ClientError
+import time
 
 bedrock = boto3.client("bedrock-runtime")
 lambda_client = boto3.client('lambda')
@@ -58,12 +59,13 @@ def get_vector_store(collection_name="main_collection"):
                     embedding_function=BedrockEmbeddings(client=bedrock))
 
 
-def update_history(case_id, human_message, assistant_message):
+def update_history(session_id, human_message, assistant_message):
     try:
         payload = {
-            "case_id": case_id,
+            "session_id": session_id,
             "human_message": human_message,
-            "assistant_message": assistant_message
+            "assistant_message": assistant_message,
+            "sk": time.time()
         }
         response = lambda_client.invoke(
             FunctionName=os.environ.get("MEMORY_LAMBDA_NAME"),
@@ -76,7 +78,7 @@ def update_history(case_id, human_message, assistant_message):
         return e.response['Error']['Message']
 
 
-def prepare_prompt(query:str, docs:list, history:list):
+def prepare_prompt(query: str, docs: list, history: list):
     final_prompt = "{}.Answer in french.\n\nAssistant:"
 
     basic_prompt = f"""\n\nHuman: The user sent the following message : {query}."""
@@ -95,6 +97,27 @@ def prepare_prompt(query:str, docs:list, history:list):
     final_prompt.format(basic_prompt)
     print(final_prompt)
     return final_prompt
+
+
+def prepare_lex_response(assistant_message: str):
+    return {
+        "sessionState": {
+            "dialogAction": {
+                "type": "ElicitIntent"
+            },
+            "intent": {
+                "name": "AnswerIntent",
+                "state": "InProgress"
+            }
+        },
+        "messages": [
+            {
+                "contentType": "PlainText",
+                "content": assistant_message
+            }
+        ],
+        "requestAttributes": {}
+    }
 
 
 def invoke_model(query, docs, max_tokens=512):
@@ -122,33 +145,37 @@ def dummy_invoke_model():
 
 def lambda_handler(event, context):
     try:
-        vector_store = get_vector_store(collection_name="main_collection")
-        print("vector store retrieved")
         print(event)
 
-        query = event['query']
-        max_tokens_to_sample = event['max_tokens']
-        dev_mode = event.get('dev_mode', 1)
-        case_id = event['case_id']
+        session_id = event['sessionId']
+        intent = event['sessionState']['intent']['name']
+        if intent == "Intent" or intent == "FallbackIntent":
+            vector_store = get_vector_store(collection_name="main_collection")
+            query = event['transcriptions'][0]['transcription']
 
-        if dev_mode == 0:
-            docs = vector_store.similarity_search_with_relevance_scores(
-                query=query, k=5)
+            max_tokens_to_sample = os.environ.get("MAX_TOKENS", 100)
+            dev_mode = os.environ.get("DEV_MODE", 1)
+            case_id = event['case_id']
 
-            # filter out documents with low relevance score
-            # only keep the document
-            docs = [x[0] for x in docs if x[1] > RELEVANCE_TRESHOLD]
+            if dev_mode == 0:
+                docs = vector_store.similarity_search_with_relevance_scores(
+                    query=query, k=5)
 
-            # retrieve chat history
-            history = update_history(case_id, query, docs)
+                # filter out documents with low relevance score
+                # only keep the documents
+                docs = [x[0] for x in docs if x[1] > RELEVANCE_TRESHOLD]
 
-            # prepare the prompt
-            prompt = prepare_prompt(query, docs, history)
+                # retrieve chat history
+                history = update_history(session_id, query, docs)
 
-            response = invoke_model(query, docs, max_tokens_to_sample)
-            update_history(case_id, query, response)
-        else:
-            response = dummy_invoke_model()
+                # prepare the prompt
+                prompt = prepare_prompt(query, docs, history)
+
+                response = invoke_model(query, docs, max_tokens_to_sample)
+                update_history(case_id, query, response)
+            else:
+                response = dummy_invoke_model()
+
 
         return {
             "statusCode": 200,
