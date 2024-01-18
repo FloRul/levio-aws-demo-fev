@@ -176,16 +176,10 @@ def lambda_handler(event, context):
             else:
                 response = dummy_invoke_model()
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps(response)
-        }
+        return prepare_lex_response(response)
     except Exception as e:
         print(e)
-        return {
-            "statusCode": 500,
-            "body": json.dumps(e)
-        }
+        return prepare_lex_response("Sorry, I did not understand that.")
 
 # # Retrieve more documents with higher diversity
 # # Useful if your dataset has many similar documents
