@@ -123,7 +123,7 @@ def lambda_handler(event, context):
 
                 # prepare the prompt
                 prompt = prepare_prompt(query, docs, chat_history)
-                print(prompt)
+                print(f"prompt :{prompt}")
                 response = invoke_model(prompt, max_tokens_to_sample)
                 history.add(human_message=query, assistant_message=response)
 
