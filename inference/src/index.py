@@ -151,11 +151,11 @@ def lambda_handler(event, context):
         intent = event['sessionState']['intent']['name']
         if intent == "Intent" or intent == "FallbackIntent":
             vector_store = get_vector_store(collection_name="main_collection")
-            query = event['transcriptions'][0]['transcription']
+            query = event['inputTranscript']
 
             max_tokens_to_sample = os.environ.get("MAX_TOKENS", 100)
             dev_mode = os.environ.get("DEV_MODE", 1)
-            case_id = event['case_id']
+            session_id = event['sessionId']
 
             if dev_mode == 0:
                 docs = vector_store.similarity_search_with_relevance_scores(
@@ -172,10 +172,9 @@ def lambda_handler(event, context):
                 prompt = prepare_prompt(query, docs, history)
 
                 response = invoke_model(query, docs, max_tokens_to_sample)
-                update_history(case_id, query, response)
+                update_history(session_id, query, response)
             else:
                 response = dummy_invoke_model()
-
 
         return {
             "statusCode": 200,
