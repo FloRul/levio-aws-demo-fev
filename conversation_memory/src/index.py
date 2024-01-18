@@ -18,7 +18,6 @@ def lambda_handler(event, context):
 
     try:
         item = {
-            'PK': uuid.uuid4().hex,
             'CaseId': case_id,
             'SK': str(time.time()),
             'HumanMessage': human_message,
