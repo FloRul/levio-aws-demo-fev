@@ -49,7 +49,6 @@ def prepare_prompt(query: str, docs: list, history: list):
         basic_prompt = f"""{basic_prompt}\n{history_prompt}"""
 
     final_prompt = final_prompt.format(basic_prompt)
-    print(final_prompt)
     return final_prompt
 
 
