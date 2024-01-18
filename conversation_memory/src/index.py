@@ -32,11 +32,12 @@ def lambda_handler(event, context):
             ScanIndexForward=False,
             Limit=10
         )
-
         return {
             'statusCode': 200,
-            'body': json.dumps(response)
+            'body': json.dumps(response['Items'])
         }
     except ClientError as e:
-        print(e.response['Error']['Message'])
-        return e.response['Error']['Message']
+        return {
+            'statusCode': 200,
+            'body': e.response['Error']['Message']
+        }
