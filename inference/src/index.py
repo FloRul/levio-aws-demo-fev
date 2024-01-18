@@ -58,10 +58,10 @@ def get_vector_store(collection_name="main_collection"):
                     embedding_function=BedrockEmbeddings(client=bedrock))
 
 
-def update_history(case_id, human_message, assistant_message):
+def update_history(session_id, human_message, assistant_message):
     try:
         payload = {
-            "case_id": case_id,
+            "session_id": session_id,
             "human_message": human_message,
             "assistant_message": assistant_message
         }
@@ -122,6 +122,9 @@ def dummy_invoke_model():
 
 def lambda_handler(event, context):
     try:
+        session_id = event['sessionId']
+        
+        
         vector_store = get_vector_store(collection_name="main_collection")
         print("vector store retrieved")
         print(event)
@@ -140,7 +143,7 @@ def lambda_handler(event, context):
             docs = [x[0] for x in docs if x[1] > RELEVANCE_TRESHOLD]
 
             # retrieve chat history
-            history = update_history(case_id, query, docs)
+            history = update_history(session_id, query, docs)
 
             # prepare the prompt
             prompt = prepare_prompt(query, docs, history)

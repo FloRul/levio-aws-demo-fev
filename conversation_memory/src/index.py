@@ -12,23 +12,23 @@ PROMPT_TEMPLATE = """\n\nHuman:{}\n\nAssistant:{}"""
 
 def lambda_handler(event, context):
     table = dynamodb.Table(os.getenv('DYNAMO_TABLE'))
-    case_id = event['case_id']
+    session_id = event['session_id']
     human_message = event['human_message']
     assistant_message = event['assistant_message']
-
+    sk = event['sk']
     try:
         item = {
-            'CaseId': case_id,
-            'SK': str(time.time()),
+            'SessionId': session_id,
+            'SK': sk,
             'HumanMessage': human_message,
             'AssistantMessage': assistant_message
         }
         print(item)
         table.put_item(Item=item)
 
-        # Query the last 10 items for the same caseId
+        # Query the last 10 items for the same sessionId
         response = table.query(
-            KeyConditionExpression=Key('CaseId').eq(case_id),
+            KeyConditionExpression=Key('SessionId').eq(session_id),
             ScanIndexForward=False,
             Limit=10
         )
