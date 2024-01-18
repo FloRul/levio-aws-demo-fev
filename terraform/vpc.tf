@@ -101,6 +101,13 @@ resource "aws_security_group" "lambda_inference_sg" {
 resource "aws_security_group" "lambda_memory_sg" {
   name   = "lambda-memory-sg"
   vpc_id = module.vpc.vpc_id
+  ingress {
+    description     = "Lambda Memory"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lambda_inference_sg.id]
+  }
   egress {
     description = "Lambda Memory"
     from_port   = 0
