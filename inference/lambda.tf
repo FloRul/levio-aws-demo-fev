@@ -97,5 +97,23 @@ module "lambda_function_container_image" {
         "secretsmanager:GetSecretValue"
       ]
     }
+    dynamo_db = {
+      effect = "Allow"
+
+      resources = [
+        "arn:aws:dynamodb:${var.aws_region}:446872271111:table/${var.dynamo_history_table_name}"
+      ]
+
+      actions = [
+        "dynamodb:PutItem",
+        "dynamodb:GetItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Scan",
+        "dynamodb:Query",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:BatchGetItem"
+      ]
+    }
   }
 }
