@@ -86,16 +86,6 @@ def lambda_handler(event, context):
     print(event)
     intent = event["sessionState"]["intent"]["name"]
     response = "this is a dummy response"
-    retrieval = Retrieval(
-        driver=PGVECTOR_DRIVER,
-        host=PGVECTOR_HOST,
-        port=PGVECTOR_PORT,
-        database=PGVECTOR_DATABASE,
-        user=PGVECTOR_USER,
-        password=PGVECTOR_PASSWORD,
-        collection_name="main_collection",
-    )
-    history = History(event["sessionId"])
 
     enable_history = int(os.environ.get("ENABLE_HISTORY", 1))
     enable_retrieval = int(os.environ.get("ENABLE_RETRIEVAL", 1))
@@ -108,6 +98,8 @@ def lambda_handler(event, context):
           enable_inference: {enable_inference}"""
     )
 
+    history = History(event["sessionId"])
+
     try:
         if intent == "Intent" or intent == "FallbackIntent":
             query = event["inputTranscript"]
@@ -116,6 +108,15 @@ def lambda_handler(event, context):
 
             if enable_inference == 1:
                 if enable_retrieval == 1:
+                    retrieval = Retrieval(
+                        driver=PGVECTOR_DRIVER,
+                        host=PGVECTOR_HOST,
+                        port=PGVECTOR_PORT,
+                        database=PGVECTOR_DATABASE,
+                        user=PGVECTOR_USER,
+                        password=PGVECTOR_PASSWORD,
+                        collection_name="main_collection",
+                    )
                     docs = retrieval.fetch_documents(query=query, top_k=10)
 
                 if enable_history == 1:
@@ -126,7 +127,8 @@ def lambda_handler(event, context):
                 print(f"prompt :{prompt}")
                 response = invoke_model(prompt, max_tokens_to_sample)
                 print(f"response :{response}")
-                history.add(human_message=query, assistant_message=response)
+                if enable_history == 1:
+                    history.add(human_message=query, assistant_message=response)
 
         return prepare_lex_response(response, intent)
     except Exception as e:
