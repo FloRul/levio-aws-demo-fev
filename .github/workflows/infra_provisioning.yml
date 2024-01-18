@@ -1,4 +1,4 @@
-name: Planning and apply infrastructure
+name: Apply infrastructure
 
 on:
   push:
