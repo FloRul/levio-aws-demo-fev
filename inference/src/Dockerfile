@@ -7,6 +7,7 @@ COPY requirements.txt ${LAMBDA_TASK_ROOT}
 RUN pip install -r requirements.txt
 
 # Copy function code
+COPY history.py ${LAMBDA_TASK_ROOT}
 COPY retrieval.py ${LAMBDA_TASK_ROOT}
 COPY index.py ${LAMBDA_TASK_ROOT}
 
