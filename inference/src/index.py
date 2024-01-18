@@ -1,4 +1,3 @@
-from gc import enable
 import json
 import os
 import boto3
