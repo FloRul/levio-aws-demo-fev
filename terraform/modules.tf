@@ -17,7 +17,8 @@ module "ingestion" {
 }
 
 locals {
-  memory_lambda_name = "levio-demo-fev-memory"
+  memory_lambda_name        = "levio-demo-fev-memory"
+  dynamo_history_table_name = "levio-demo-fev-chat-history"
 }
 
 module "inference" {
@@ -35,6 +36,7 @@ module "inference" {
   lambda_image_uri               = var.inference_lambda_image_uri
   lambda_function_name           = "levio-demo-fev-inference"
   memory_lambda_name             = local.memory_lambda_name
+  dynamo_history_table_name      = local.dynamo_history_table_name
 }
 
 module "memory" {
@@ -46,6 +48,6 @@ module "memory" {
   aws_region                = var.aws_region
   lambda_function_name      = local.memory_lambda_name
   lambda_image_uri          = var.memory_lambda_image_uri
-  dynamo_history_table_name = "levio-demo-fev-chat-history"
+  dynamo_history_table_name = local.dynamo_history_table_name
 }
 

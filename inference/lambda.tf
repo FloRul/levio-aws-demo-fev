@@ -23,6 +23,7 @@ module "lambda_function_container_image" {
     ENABLE_HISTORY                = 0
     ENABLE_RETRIEVAL              = 0
     MEMORY_LAMBDA_NAME            = var.memory_lambda_name
+    DYNAMO_TABLE                  = var.dynamo_history_table_name
   }
   policy_statements = {
     log_group = {

@@ -10,14 +10,14 @@ PROMPT_TEMPLATE = """\n\nHuman:{}\n\nAssistant:{}"""
 
 def lambda_handler(event, context):
     table = dynamodb.Table(os.getenv("DYNAMO_TABLE"))  # type: ignore
-    session_id = event["session_id"]
-    limit = event["limit"]
+    payload = json.loads(event["body"])
+    session_id = payload["session_id"]
+    limit = payload["limit"]
     try:
         response = table.query(
             KeyConditionExpression=Key("SessionId").eq(session_id),
             ScanIndexForward=False,
             Limit=limit,
-            
         )
         return {"statusCode": 200, "body": json.dumps(response["Items"])}
     except ClientError as e:
