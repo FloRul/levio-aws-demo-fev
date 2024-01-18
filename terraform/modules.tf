@@ -16,6 +16,10 @@ module "ingestion" {
   queue_name                     = "levio-demo-fev-ingestion-queue"
 }
 
+locals {
+  memory_lambda_name = "levio-demo-fev-memory"
+}
+
 module "inference" {
   source = "../inference"
   lambda_vpc_security_group_ids = [
@@ -30,6 +34,7 @@ module "inference" {
   secret_arn                     = aws_secretsmanager_secret.password.arn
   lambda_image_uri               = var.inference_lambda_image_uri
   lambda_function_name           = "levio-demo-fev-inference"
+  memory_lambda_name             = local.memory_lambda_name
 }
 
 module "memory" {
@@ -39,7 +44,7 @@ module "memory" {
   ]
   lambda_vpc_subnet_ids     = module.vpc.public_subnets
   aws_region                = var.aws_region
-  lambda_function_name      = "levio-demo-fev-memory"
+  lambda_function_name      = local.memory_lambda_name
   lambda_image_uri          = var.memory_lambda_image_uri
   dynamo_history_table_name = "levio-demo-fev-chat-history"
 }

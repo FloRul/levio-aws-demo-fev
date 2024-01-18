@@ -22,6 +22,7 @@ module "lambda_function_container_image" {
     ENABLE_INFERENCE              = 1
     ENABLE_HISTORY                = 1
     ENABLE_RETRIEVAL              = 1
+    MEMORY_LAMBDA_NAME            = var.memory_lambda_name
   }
   policy_statements = {
     log_group = {
