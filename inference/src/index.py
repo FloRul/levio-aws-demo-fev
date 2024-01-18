@@ -99,14 +99,14 @@ def prepare_prompt(query: str, docs: list, history: list):
     return final_prompt
 
 
-def prepare_lex_response(assistant_message: str):
+def prepare_lex_response(assistant_message: str, intent: str):
     return {
         "sessionState": {
             "dialogAction": {
                 "type": "ElicitIntent"
             },
             "intent": {
-                "name": "AnswerIntent",
+                "name": intent,
                 "state": "InProgress"
             }
         },
@@ -176,7 +176,7 @@ def lambda_handler(event, context):
             else:
                 response = dummy_invoke_model()
 
-        return prepare_lex_response(response)
+        return prepare_lex_response(response, intent)
     except Exception as e:
         print(e)
         return prepare_lex_response("Sorry, I did not understand that.")
