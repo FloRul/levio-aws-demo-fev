@@ -50,7 +50,7 @@ def prepare_prompt(query: str, docs: list, history: list):
         history_prompt = f"""Consider using the following history : <history>{history_context}</history>."""
         basic_prompt = f"""{basic_prompt}\n{history_prompt}"""
 
-    final_prompt.format(basic_prompt)
+    final_prompt = final_prompt.format(basic_prompt)
     print(final_prompt)
     return final_prompt
 
