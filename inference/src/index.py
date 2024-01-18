@@ -50,7 +50,7 @@ def prepare_prompt(query: str, docs: list, history: list):
         history_prompt = f"""Consider using the following history : <history>{history_context}</history>."""
         basic_prompt = f"""{basic_prompt}\n{history_prompt}"""
 
-    final_prompt.format(basic_prompt)
+    final_prompt = final_prompt.format(basic_prompt)
     print(final_prompt)
     return final_prompt
 
@@ -123,7 +123,7 @@ def lambda_handler(event, context):
 
                 # prepare the prompt
                 prompt = prepare_prompt(query, docs, chat_history)
-                print(prompt)
+                print(f"prompt :{prompt}")
                 response = invoke_model(prompt, max_tokens_to_sample)
                 history.add(human_message=query, assistant_message=response)
 
