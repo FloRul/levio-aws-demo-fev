@@ -122,7 +122,7 @@ def lambda_handler(event, context):
                     docs = retrieval.fetch_documents(query=query, top_k=top_k)
 
                 if enable_history == 1:
-                    chat_history = history.get(limit=10, offset=0)
+                    chat_history = history.get(limit=10)
 
                 # prepare the prompt
                 prompt = prepare_prompt(query, docs, chat_history)

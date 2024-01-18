@@ -9,19 +9,18 @@ class History:
     def __init__(self, session_id: str):
         self._session_id = session_id
 
-    def get(self, limit: int = 10, offset: int = 0):
+    def get(self, limit: int = 10):
         try:
             payload = {
                 "session_id": self._session_id,
                 "limit": limit,
-                "offset": offset,
             }
             response = boto3.client("lambda").invoke(
                 FunctionName=os.environ.get("MEMORY_LAMBDA_NAME"),
                 InvocationType="RequestResponse",
                 Payload=json.dumps(payload),
             )
-            return response
+            return response["Payload"].read().decode("utf-8")
         except ClientError as e:
             print(e.response["Error"]["Message"])
             return e.response["Error"]["Message"]
