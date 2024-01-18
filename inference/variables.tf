@@ -55,3 +55,8 @@ variable "secret_arn" {
   type     = string
   nullable = false
 }
+
+variable "memory_lambda_name" {
+  type     = string
+  nullable = false
+}
