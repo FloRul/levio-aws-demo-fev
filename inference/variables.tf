@@ -60,3 +60,8 @@ variable "memory_lambda_name" {
   type     = string
   nullable = false
 }
+
+variable "dynamo_history_table_name" {
+  type     = string
+  nullable = false
+}

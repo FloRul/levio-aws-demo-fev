@@ -6,8 +6,6 @@ from botocore.exceptions import ClientError
 
 
 class History:
-    _session_id = None
-
     def __init__(self, session_id: str):
         self._session_id = session_id
 
@@ -35,7 +33,7 @@ class History:
                 "SessionId": self._session_id,
                 "HumanMessage": human_message,
                 "AssistantMessage": assistant_message,
-                "SK": int(time.time()),
+                "SK": str(time.time()),
             }
             table.put_item(Item=item)
             return item
