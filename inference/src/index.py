@@ -91,6 +91,8 @@ def lambda_handler(event, context):
     enable_retrieval = int(os.environ.get("ENABLE_RETRIEVAL", 1))
     max_tokens_to_sample = int(os.environ.get("MAX_TOKENS", 100))
     enable_inference = int(os.environ.get("ENABLE_INFERENCE", 1))
+    top_k = int(os.environ.get("TOP_K", 10))
+
     print(
         f"""enable_history: {enable_history}, 
           enable_retrieval: {enable_retrieval}, 
@@ -117,7 +119,7 @@ def lambda_handler(event, context):
                         password=PGVECTOR_PASSWORD,
                         collection_name="main_collection",
                     )
-                    docs = retrieval.fetch_documents(query=query, top_k=10)
+                    docs = retrieval.fetch_documents(query=query, top_k=top_k)
 
                 if enable_history == 1:
                     chat_history = history.get(limit=10, offset=0)
