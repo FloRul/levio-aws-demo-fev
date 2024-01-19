@@ -65,3 +65,8 @@ variable "dynamo_history_table_name" {
   type     = string
   nullable = false
 }
+
+variable "embedding_collection_name" {
+  type     = string
+  nullable = false
+}

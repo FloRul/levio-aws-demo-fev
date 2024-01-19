@@ -100,12 +100,16 @@ def lambda_handler(event, context):
     max_tokens_to_sample = int(os.environ.get("MAX_TOKENS", 100))
     enable_inference = int(os.environ.get("ENABLE_INFERENCE", 1))
     top_k = int(os.environ.get("TOP_K", 10))
-
+    embedding_collection_name = os.environ.get("EMBEDDING_COLLECTION_NAME", "docs")
+    
     print(
         f"""enable_history: {enable_history}, 
           enable_retrieval: {enable_retrieval}, 
           max_tokens_to_sample: {max_tokens_to_sample}, 
-          enable_inference: {enable_inference}"""
+          enable_inference: {enable_inference},
+          top_k: {top_k},
+          embedding_collection_name: {embedding_collection_name}
+          """
     )
 
     history = History(event["sessionId"])
@@ -125,7 +129,7 @@ def lambda_handler(event, context):
                         database=PGVECTOR_DATABASE,
                         user=PGVECTOR_USER,
                         password=PGVECTOR_PASSWORD,
-                        collection_name="main_collection",
+                        collection_name=embedding_collection_name,
                     )
                     docs = retrieval.fetch_documents(query=query, top_k=top_k)
 

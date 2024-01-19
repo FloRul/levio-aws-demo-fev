@@ -50,11 +50,15 @@ class Retrieval:
             raise e
 
     def fetch_documents(self, query: str, top_k: int = 10):
-        docs = self._vector_store.similarity_search_with_relevance_scores(
-            query=query, k=top_k
-        )
-        print(f"retrieved docs: {docs}")
-        return [x[0] for x in docs if x[1] > self._relevance_treshold]
+        try:
+            docs = self._vector_store.similarity_search_with_relevance_scores(
+                query=query, k=top_k
+            )
+            print(f"retrieved docs: {docs}")
+            return [x[0] for x in docs if x[1] > self._relevance_treshold]
+        except Exception as e:
+            print(f"Error while retrieving documents : {e}")
+            raise e
 
 
 # # Retrieve more documents with higher diversity
