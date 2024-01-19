@@ -32,7 +32,9 @@ CONTENT_TYPE = "application/json"
 
 def prepare_prompt(query: str, docs: list, history: list):
     try:
-        final_prompt = "{} Answer in french.\n\nAssistant:"
+        final_prompt = (
+            "{} Answer in french, do not use XML tags in your answer.\n\nAssistant:"
+        )
 
         basic_prompt = f"""\n\nHuman: The user sent the following message : <message>{query}</message>."""
 
@@ -42,7 +44,6 @@ def prepare_prompt(query: str, docs: list, history: list):
             basic_prompt = f"""{basic_prompt}\n{document_prompt}"""
 
         if len(history) > 0:
-            print(f"history : {history}")
             history_context = ".\n".join(
                 map(
                     lambda x: f"""Human:{x['HumanMessage']}\nAssistant:{x['AssistantMessage']}""",
@@ -91,7 +92,6 @@ def invoke_model(prompt: str, max_tokens: int):
 
 
 def lambda_handler(event, context):
-    print(event)
     intent = event["sessionState"]["intent"]["name"]
     response = "this is a dummy response"
 
