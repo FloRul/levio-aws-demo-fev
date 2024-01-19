@@ -41,6 +41,7 @@ def prepare_prompt(query: str, docs: list, history: list):
         basic_prompt = f"""{basic_prompt}\n{document_prompt}"""
 
     if len(history) > 0:
+        print(f"history : {history}")
         history_context = ".\n".join(
             map(lambda x: f"""{x['human_message']}{x['assistant_message']}""", history)
         )
@@ -122,17 +123,15 @@ def lambda_handler(event, context):
                     docs = retrieval.fetch_documents(query=query, top_k=top_k)
 
                 if enable_history == 1:
-                    chat_history = history.get(limit=10)
-                    print(type(chat_history))
-                    print(f"chat_history :{chat_history}")
-                
+                    chat_history = json.loads(history.get(limit=10))
+
                 # prepare the prompt
                 prompt = prepare_prompt(query, docs, chat_history)
                 print(f"prompt :{prompt}")
-                
+
                 response = invoke_model(prompt, max_tokens_to_sample)
                 print(f"response :{response}")
-                
+
                 if enable_history == 1:
                     history.add(human_message=query, assistant_message=response)
 
