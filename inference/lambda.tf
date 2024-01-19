@@ -26,6 +26,7 @@ module "lambda_function_container_image" {
     DYNAMO_TABLE                  = var.dynamo_history_table_name
     TOP_K                         = 10
     RELEVANCE_THRESHOLD           = 0.65
+    MODEL_ID                      = "anthropic.claude-instant-v1"
     EMBEDDING_COLLECTION_NAME     = var.embedding_collection_name
     SYSTEM_PROMPT                 = "Answer in four to five sentences.Answer in french, do not use XML tags in your answer."
   }
