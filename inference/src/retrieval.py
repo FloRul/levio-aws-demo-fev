@@ -22,7 +22,7 @@ class Retrieval:
         user,
         password,
         collection_name,
-        relevance_treshold=0.65,
+        relevance_treshold,
     ):
         self._relevance_treshold = relevance_treshold
         self._vector_store = PGVector(

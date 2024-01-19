@@ -23,9 +23,9 @@ PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "postgres")
 PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
 PGVECTOR_PASSWORD = get_secret()
 
-RELEVANCE_TRESHOLD = 0.65
+RELEVANCE_TRESHOLD = os.environ.get("RELEVANCE_TRESHOLD", 0.5)
 
-MODEL_ID = "anthropic.claude-instant-v1"
+MODEL_ID = os.environ.get("MODEL_ID", "anthropic.claude-instant-v1")
 ACCEPT = "application/json"
 CONTENT_TYPE = "application/json"
 
@@ -132,6 +132,7 @@ def lambda_handler(event, context):
                         user=PGVECTOR_USER,
                         password=PGVECTOR_PASSWORD,
                         collection_name=embedding_collection_name,
+                        relevance_treshold=RELEVANCE_TRESHOLD,
                     )
                     docs = retrieval.fetch_documents(query=query, top_k=top_k)
 
