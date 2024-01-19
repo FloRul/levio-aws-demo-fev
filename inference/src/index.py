@@ -73,12 +73,13 @@ def prepare_lex_response(assistant_message: str, intent: str):
     }
 
 
-def invoke_model(prompt: str, max_tokens: int):
+def invoke_model(prompt: str, max_tokens: int, temperature: float, top_p: float):
     body = json.dumps(
         {
             "prompt": prompt,
             "max_tokens_to_sample": max_tokens,
-            "temperature": 0.3,
+            "temperature": temperature,
+            "top_p": top_p,
         }
     )
     try:
@@ -103,16 +104,8 @@ def lambda_handler(event, context):
     enable_inference = int(os.environ.get("ENABLE_INFERENCE", 1))
     top_k = int(os.environ.get("TOP_K", 10))
     embedding_collection_name = os.environ.get("EMBEDDING_COLLECTION_NAME", "docs")
-
-    print(
-        f"""enable_history: {enable_history}, 
-          enable_retrieval: {enable_retrieval}, 
-          max_tokens_to_sample: {max_tokens_to_sample}, 
-          enable_inference: {enable_inference},
-          top_k: {top_k},
-          embedding_collection_name: {embedding_collection_name}
-          """
-    )
+    top_p = float(os.environ.get("TOP_P", 0.9))
+    temperature = float(os.environ.get("TEMPERATURE", 0.3))
 
     history = History(event["sessionId"])
 
@@ -143,7 +136,9 @@ def lambda_handler(event, context):
                 prompt = prepare_prompt(query, docs, chat_history)
                 print(f"prompt :{prompt}")
 
-                response = invoke_model(prompt, max_tokens_to_sample)
+                response = invoke_model(
+                    prompt, max_tokens_to_sample, temperature, top_p
+                )
                 print(f"response :{response}")
 
                 if enable_history == 1:
