@@ -123,7 +123,7 @@ def lambda_handler(event, context):
 
                 if enable_history == 1:
                     chat_history = history.get(limit=10)
-
+                    print(f"chat_history :{chat_history}")
                 # prepare the prompt
                 prompt = prepare_prompt(query, docs, chat_history)
                 print(f"prompt :{prompt}")
