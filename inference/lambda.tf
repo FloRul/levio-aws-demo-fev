@@ -25,6 +25,7 @@ module "lambda_function_container_image" {
     MEMORY_LAMBDA_NAME            = var.memory_lambda_name
     DYNAMO_TABLE                  = var.dynamo_history_table_name
     TOP_K                         = 10
+    EMBEDDING_COLLECTION_NAME     = var.embedding_collection_name
   }
   policy_statements = {
     log_group = {

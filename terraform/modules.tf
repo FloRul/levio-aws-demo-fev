@@ -1,6 +1,15 @@
+locals {
+  memory_lambda_name        = "levio-demo-fev-memory"
+  dynamo_history_table_name = "levio-demo-fev-chat-history"
+  storage_bucket_name       = "levio-demo-fev-storage"
+  queue_name                = "levio-demo-fev-ingestion-queue"
+  ingestion_lambda_name     = "levio-demo-fev-ingestion"
+  inference_lambda_name     = "levio-demo-fev-inference"
+}
+
 module "ingestion" {
   source              = "../ingestion"
-  storage_bucket_name = "levio-demo-fev-storage"
+  storage_bucket_name = local.storage_bucket_name
   lambda_vpc_security_group_ids = [
     aws_security_group.lambda_ingestion_sg.id,
   ]
@@ -12,13 +21,8 @@ module "ingestion" {
   pg_vector_password_secret_name = aws_secretsmanager_secret.password.name
   secret_arn                     = aws_secretsmanager_secret.password.arn
   lambda_image_uri               = var.ingestion_lambda_image_uri
-  lambda_function_name           = "levio-demo-fev-ingestion"
-  queue_name                     = "levio-demo-fev-ingestion-queue"
-}
-
-locals {
-  memory_lambda_name        = "levio-demo-fev-memory"
-  dynamo_history_table_name = "levio-demo-fev-chat-history"
+  lambda_function_name           = local.ingestion_lambda_name
+  queue_name                     = local.queue_name
 }
 
 module "inference" {
@@ -34,9 +38,10 @@ module "inference" {
   pg_vector_password_secret_name = aws_secretsmanager_secret.password.name
   secret_arn                     = aws_secretsmanager_secret.password.arn
   lambda_image_uri               = var.inference_lambda_image_uri
-  lambda_function_name           = "levio-demo-fev-inference"
+  lambda_function_name           = local.inference_lambda_name
   memory_lambda_name             = local.memory_lambda_name
   dynamo_history_table_name      = local.dynamo_history_table_name
+  embedding_collection_name      = local.storage_bucket_name
 }
 
 module "memory" {
@@ -50,4 +55,3 @@ module "memory" {
   lambda_image_uri          = var.memory_lambda_image_uri
   dynamo_history_table_name = local.dynamo_history_table_name
 }
-
