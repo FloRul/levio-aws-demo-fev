@@ -31,6 +31,7 @@ module "lambda_function_container_image" {
     MODEL_ID                      = "anthropic.claude-instant-v1"
     EMBEDDING_COLLECTION_NAME     = var.embedding_collection_name
     SYSTEM_PROMPT                 = "Answer in four to five sentences.Answer in french, do not use XML tags in your answer."
+    CHAT_INTENT_NAME              = "global"
   }
   policy_statements = {
     log_group = {
