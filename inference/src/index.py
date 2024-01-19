@@ -110,7 +110,7 @@ def lambda_handler(event, context):
     history = History(event["sessionId"])
 
     try:
-        if intent == chat_intent_name or intent == "FallbackIntent":
+        if intent == chat_intent_name or intent == "fallbackintent":
             query = event["inputTranscript"]
             docs = []
             chat_history = []
