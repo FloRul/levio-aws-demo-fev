@@ -39,7 +39,7 @@ def prepare_prompt(query: str, docs: list, history: list):
         basic_prompt = f"""\n\nHuman: The user sent the following message : <message>{query}</message>."""
 
         if len(docs) > 0:
-            docs_context = ".\n".join(map(lambda x: x[0].page_content, docs))
+            docs_context = ".\n".join(map(lambda x: x.page_content, docs))
             document_prompt = f"""Use the following documents corpus to answer: <corpus>{docs_context}</corpus>."""
             basic_prompt = f"""{basic_prompt}\n{document_prompt}"""
 
