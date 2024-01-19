@@ -19,8 +19,8 @@ module "lambda_function_container_image" {
     PGVECTOR_USER                 = var.pg_vector_user
     PGVECTOR_PASSWORD_SECRET_NAME = var.pg_vector_password_secret_name
     MAX_TOKENS                    = 100
-    ENABLE_INFERENCE              = 0
-    ENABLE_HISTORY                = 0
+    ENABLE_INFERENCE              = 1
+    ENABLE_HISTORY                = 1
     ENABLE_RETRIEVAL              = 0
     MEMORY_LAMBDA_NAME            = var.memory_lambda_name
     DYNAMO_TABLE                  = var.dynamo_history_table_name
