@@ -32,9 +32,11 @@ CONTENT_TYPE = "application/json"
 
 def prepare_prompt(query: str, docs: list, history: list):
     try:
-        final_prompt = (
-            "{} Answer in french, do not use XML tags in your answer.\n\nAssistant:"
+        system_prompt = os.environ.get(
+            "SYSTEM_PROMPT",
+            "Answer in four to five sentences.Answer in french, do not use XML tags in your answer.",
         )
+        final_prompt = "{}{}\n\nAssistant:"
 
         basic_prompt = f"""\n\nHuman: The user sent the following message : <message>{query}</message>."""
 
@@ -53,7 +55,7 @@ def prepare_prompt(query: str, docs: list, history: list):
             history_prompt = f"""Consider using the following history : <history>{history_context}</history>."""
             basic_prompt = f"""{basic_prompt}\n{history_prompt}"""
 
-        final_prompt = final_prompt.format(basic_prompt)
+        final_prompt = final_prompt.format(system_prompt, basic_prompt)
         return final_prompt
     except Exception as e:
         print(f"Error while preparing prompt : {e}")
@@ -101,7 +103,7 @@ def lambda_handler(event, context):
     enable_inference = int(os.environ.get("ENABLE_INFERENCE", 1))
     top_k = int(os.environ.get("TOP_K", 10))
     embedding_collection_name = os.environ.get("EMBEDDING_COLLECTION_NAME", "docs")
-    
+
     print(
         f"""enable_history: {enable_history}, 
           enable_retrieval: {enable_retrieval}, 
