@@ -116,5 +116,16 @@ module "lambda_function_container_image" {
         "dynamodb:BatchGetItem"
       ]
     }
+    lambda = {
+      effect = "Allow"
+
+      resources = [
+        "arn:aws:lambda:${var.aws_region}:446872271111:function:${var.memory_lambda_name}"
+      ]
+
+      actions = [
+        "lambda:InvokeFunction"
+      ]
+    }
   }
 }

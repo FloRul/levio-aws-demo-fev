@@ -20,11 +20,10 @@ class History:
                 InvocationType="RequestResponse",
                 Payload=json.dumps(payload),
             )
+            print("memory reached")
             return response["Payload"].read().decode("utf-8")
         except ClientError as e:
-            print(
-                "Error occurred: ", e.response["Error"]["Message"]
-            )  # Print the error message
+            print("Error occurred: ", e.response["Error"]["Message"])
             return e.response["Error"]["Message"]
 
     def add(self, human_message: str, assistant_message: str):
