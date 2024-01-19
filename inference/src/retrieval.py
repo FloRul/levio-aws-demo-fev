@@ -13,9 +13,6 @@ CONTENT_TYPE = "application/json"
 
 
 class Retrieval:
-    _vector_store: PGVector
-    _relevance_treshold: float
-
     def __init__(
         self,
         driver,
