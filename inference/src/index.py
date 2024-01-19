@@ -31,25 +31,32 @@ CONTENT_TYPE = "application/json"
 
 
 def prepare_prompt(query: str, docs: list, history: list):
-    final_prompt = "{} Answer in french.\n\nAssistant:"
+    try:
+        final_prompt = "{} Answer in french.\n\nAssistant:"
 
-    basic_prompt = f"""\n\nHuman: The user sent the following message : <message>{query}</message>."""
+        basic_prompt = f"""\n\nHuman: The user sent the following message : <message>{query}</message>."""
 
-    if len(docs) > 0:
-        docs_context = ".\n".join(map(lambda x: x[0].page_content, docs))
-        document_prompt = f"""Use the following documents corpus to answer: <corpus>{docs_context}</corpus>."""
-        basic_prompt = f"""{basic_prompt}\n{document_prompt}"""
+        if len(docs) > 0:
+            docs_context = ".\n".join(map(lambda x: x[0].page_content, docs))
+            document_prompt = f"""Use the following documents corpus to answer: <corpus>{docs_context}</corpus>."""
+            basic_prompt = f"""{basic_prompt}\n{document_prompt}"""
 
-    if len(history) > 0:
-        print(f"history : {history}")
-        history_context = ".\n".join(
-            map(lambda x: f"""{x['human_message']}{x['assistant_message']}""", history)
-        )
-        history_prompt = f"""Consider using the following history : <history>{history_context}</history>."""
-        basic_prompt = f"""{basic_prompt}\n{history_prompt}"""
+        if len(history) > 0:
+            print(f"history : {history}")
+            history_context = ".\n".join(
+                map(
+                    lambda x: f"""{x['human_message']}{x['assistant_message']}""",
+                    history,
+                )
+            )
+            history_prompt = f"""Consider using the following history : <history>{history_context}</history>."""
+            basic_prompt = f"""{basic_prompt}\n{history_prompt}"""
 
-    final_prompt = final_prompt.format(basic_prompt)
-    return final_prompt
+        final_prompt = final_prompt.format(basic_prompt)
+        return final_prompt
+    except Exception as e:
+        print(f"Error while preparing prompt : {e}")
+        raise e
 
 
 def prepare_lex_response(assistant_message: str, intent: str):
