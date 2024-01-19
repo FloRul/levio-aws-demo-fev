@@ -45,7 +45,7 @@ def prepare_prompt(query: str, docs: list, history: list):
             print(f"history : {history}")
             history_context = ".\n".join(
                 map(
-                    lambda x: f"""{x['HumanMessage']}{x['AssistantMessage']}""",
+                    lambda x: f"""Human:{x['HumanMessage']}\nAssistant:{x['AssistantMessage']}""",
                     history,
                 )
             )
