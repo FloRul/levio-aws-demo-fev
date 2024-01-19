@@ -110,39 +110,36 @@ def lambda_handler(event, context):
     history = History(event["sessionId"])
 
     try:
-        if intent == chat_intent_name or intent == "FallbackIntent":
-            query = event["inputTranscript"]
-            docs = []
-            chat_history = []
+        query = event["inputTranscript"]
+        docs = []
+        chat_history = []
 
-            if enable_inference == 1:
-                if enable_retrieval == 1:
-                    retrieval = Retrieval(
-                        driver=PGVECTOR_DRIVER,
-                        host=PGVECTOR_HOST,
-                        port=PGVECTOR_PORT,
-                        database=PGVECTOR_DATABASE,
-                        user=PGVECTOR_USER,
-                        password=PGVECTOR_PASSWORD,
-                        collection_name=embedding_collection_name,
-                        relevance_treshold=RELEVANCE_TRESHOLD,
-                    )
-                    docs = retrieval.fetch_documents(query=query, top_k=top_k)
-
-                if enable_history == 1:
-                    chat_history = json.loads(history.get(limit=10))
-
-                # prepare the prompt
-                prompt = prepare_prompt(query, docs, chat_history)
-                print(f"prompt :{prompt}")
-
-                response = invoke_model(
-                    prompt, max_tokens_to_sample, temperature, top_p
+        if enable_inference == 1:
+            if enable_retrieval == 1:
+                retrieval = Retrieval(
+                    driver=PGVECTOR_DRIVER,
+                    host=PGVECTOR_HOST,
+                    port=PGVECTOR_PORT,
+                    database=PGVECTOR_DATABASE,
+                    user=PGVECTOR_USER,
+                    password=PGVECTOR_PASSWORD,
+                    collection_name=embedding_collection_name,
+                    relevance_treshold=RELEVANCE_TRESHOLD,
                 )
-                print(f"response :{response}")
+                docs = retrieval.fetch_documents(query=query, top_k=top_k)
 
-                if enable_history == 1:
-                    history.add(human_message=query, assistant_message=response)
+            if enable_history == 1:
+                chat_history = json.loads(history.get(limit=10))
+
+            # prepare the prompt
+            prompt = prepare_prompt(query, docs, chat_history)
+            print(f"prompt :{prompt}")
+
+            response = invoke_model(prompt, max_tokens_to_sample, temperature, top_p)
+            print(f"response :{response}")
+
+            if enable_history == 1:
+                history.add(human_message=query, assistant_message=response)
 
         lex_response = prepare_lex_response(response, intent)
         return lex_response
