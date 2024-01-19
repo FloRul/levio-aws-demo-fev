@@ -106,7 +106,7 @@ def lambda_handler(event, context):
     embedding_collection_name = os.environ.get("EMBEDDING_COLLECTION_NAME", "docs")
     top_p = float(os.environ.get("TOP_P", 0.9))
     temperature = float(os.environ.get("TEMPERATURE", 0.3))
-    chat_intent_name = os.environ.get("CHAT_INTENT_NAME", "global")
+    chat_intent_name = os.environ.get("CHAT_INTENT_NAME", "global").lower()
     history = History(event["sessionId"])
 
     try:
