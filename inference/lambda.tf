@@ -21,7 +21,7 @@ module "lambda_function_container_image" {
     MAX_TOKENS                    = 100
     ENABLE_INFERENCE              = 1
     ENABLE_HISTORY                = 1
-    ENABLE_RETRIEVAL              = 0
+    ENABLE_RETRIEVAL              = 1
     MEMORY_LAMBDA_NAME            = var.memory_lambda_name
     DYNAMO_TABLE                  = var.dynamo_history_table_name
     TOP_K                         = 10
