@@ -13,9 +13,6 @@ CONTENT_TYPE = "application/json"
 
 
 class Retrieval:
-    _vector_store: PGVector
-    _relevance_treshold: float
-
     def __init__(
         self,
         driver,
@@ -56,6 +53,7 @@ class Retrieval:
         docs = self._vector_store.similarity_search_with_relevance_scores(
             query=query, k=top_k
         )
+        print(f"retrieved docs: {docs}")
         return [x[0] for x in docs if x[1] > self._relevance_treshold]
 
 
