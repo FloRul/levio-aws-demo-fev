@@ -10,9 +10,9 @@ PROMPT_TEMPLATE = """\n\nHuman:{}\n\nAssistant:{}"""
 
 def lambda_handler(event, context):
     table = dynamodb.Table(os.getenv("DYNAMO_TABLE"))  # type: ignore
-    payload = json.loads(event["body"])
-    session_id = payload["session_id"]
-    limit = payload["limit"]
+    print(event)
+    session_id = event["session_id"]
+    limit = event["limit"]
     try:
         response = table.query(
             KeyConditionExpression=Key("SessionId").eq(session_id),
