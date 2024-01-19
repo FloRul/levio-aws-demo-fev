@@ -10,6 +10,7 @@ PROMPT_TEMPLATE = """\n\nHuman:{}\n\nAssistant:{}"""
 
 def lambda_handler(event, context):
     table = dynamodb.Table(os.getenv("DYNAMO_TABLE"))  # type: ignore
+    print(event)
     payload = json.loads(event["body"])
     session_id = payload["session_id"]
     limit = payload["limit"]
