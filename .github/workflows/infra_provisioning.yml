@@ -54,7 +54,7 @@ jobs:
     - name: Terraform Init
       id: terraform-Init
       run: |
-        terraform init
+        terraform init -no-color -upgrade
     - name: Terraform Apply
       id: terraform-Apply
       run: |
