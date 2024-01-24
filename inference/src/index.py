@@ -138,7 +138,7 @@ def lambda_handler(event, context):
             print(f"response :{response}")
 
             if enable_history == 1:
-                history.add(human_message=query, assistant_message=response)
+                history.add(human_message=query, assistant_message=response, prompt=prompt)
 
         lex_response = prepare_lex_response(response, intent)
         return lex_response
