@@ -33,7 +33,7 @@ class History:
                 "HumanMessage": human_message,
                 "AssistantMessage": assistant_message,
                 "SK": str(time.time()),
-                "Prompt":prompt
+                "Prompt": prompt,
             }
             table.put_item(Item=item)
             return item
