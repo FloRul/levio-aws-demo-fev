@@ -25,7 +25,7 @@ class History:
             print("Error occurred: ", e.response["Error"]["Message"])
             return e.response["Error"]["Message"]
 
-    def add(self, human_message: str, assistant_message: str):
+    def add(self, human_message: str, assistant_message: str, prompt: str):
         try:
             table = boto3.resource("dynamodb").Table(os.environ.get("DYNAMO_TABLE"))  # type: ignore
             item = {
@@ -33,6 +33,7 @@ class History:
                 "HumanMessage": human_message,
                 "AssistantMessage": assistant_message,
                 "SK": str(time.time()),
+                "Prompt":prompt
             }
             table.put_item(Item=item)
             return item
