@@ -38,11 +38,13 @@ def prepare_prompt(query: str, docs: list, history: list):
         )
         final_prompt = "{}{}\n\nAssistant:"
 
-        basic_prompt = f"""\n\nHuman: The user sent the following message : <message>{query}</message>."""
+        basic_prompt = (
+            f"""\n\nHuman: The user sent the following message : \"{query}\"."""
+        )
 
         if len(docs) > 0:
             docs_context = ".\n".join(map(lambda x: x.page_content, docs))
-            document_prompt = f"""Use the following documents corpus to answer: <corpus>{docs_context}</corpus>."""
+            document_prompt = f"""Here is a set of quotes between <quotes></quotes> XML tags to help you answer: <quotes>{docs_context}</quotes>."""
             basic_prompt = f"""{basic_prompt}\n{document_prompt}"""
 
         if len(history) > 0:
@@ -52,7 +54,7 @@ def prepare_prompt(query: str, docs: list, history: list):
                     history,
                 )
             )
-            history_prompt = f"""Consider using the following history : <history>{history_context}</history>."""
+            history_prompt = f"""Here is the history of the previous messages history between <history></history> XML tags: <history>{history_context}</history>."""
             basic_prompt = f"""{basic_prompt}\n{history_prompt}"""
 
         final_prompt = final_prompt.format(system_prompt, basic_prompt)
@@ -138,7 +140,9 @@ def lambda_handler(event, context):
             print(f"response :{response}")
 
             if enable_history == 1:
-                history.add(human_message=query, assistant_message=response, prompt=prompt)
+                history.add(
+                    human_message=query, assistant_message=response, prompt=prompt
+                )
 
         lex_response = prepare_lex_response(response, intent)
         return lex_response
